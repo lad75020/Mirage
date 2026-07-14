@@ -15,9 +15,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "B48E88F0AED84BCCAF04F865"
+               BlueprintIdentifier = "4A359C5F6C78BA5B0561E815"
                BuildableName = "Mirage.app"
-               BlueprintName = "Mirage"
+               BlueprintName = "MirageApp"
                ReferencedContainer = "container:Mirage.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -33,9 +33,9 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "B48E88F0AED84BCCAF04F865"
+            BlueprintIdentifier = "4A359C5F6C78BA5B0561E815"
             BuildableName = "Mirage.app"
-            BlueprintName = "Mirage"
+            BlueprintName = "MirageApp"
             ReferencedContainer = "container:Mirage.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
@@ -48,6 +48,17 @@
                BlueprintIdentifier = "F512311A17EEC9EF51CB4BEE"
                BuildableName = "MirageTests.xctest"
                BlueprintName = "MirageTests"
+               ReferencedContainer = "container:Mirage.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "54CB580AD68E43457B824B4F"
+               BuildableName = "MirageUITests.xctest"
+               BlueprintName = "MirageUITests"
                ReferencedContainer = "container:Mirage.xcodeproj">
             </BuildableReference>
          </TestableReference>
@@ -69,9 +80,9 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "B48E88F0AED84BCCAF04F865"
+            BlueprintIdentifier = "4A359C5F6C78BA5B0561E815"
             BuildableName = "Mirage.app"
-            BlueprintName = "Mirage"
+            BlueprintName = "MirageApp"
             ReferencedContainer = "container:Mirage.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -88,9 +99,9 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "B48E88F0AED84BCCAF04F865"
+            BlueprintIdentifier = "4A359C5F6C78BA5B0561E815"
             BuildableName = "Mirage.app"
-            BlueprintName = "Mirage"
+            BlueprintName = "MirageApp"
             ReferencedContainer = "container:Mirage.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>

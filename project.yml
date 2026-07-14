@@ -1,9 +1,9 @@
 name: Mirage
 
 options:
-  bundleIdPrefix: com.lad75020
+  bundleIdPrefix: fr.dubertrand
   deploymentTarget:
-    iOS: "18.0"
+    iOS: "26.0"
   createIntermediateGroups: true
   groupSortPosition: top
 
@@ -17,21 +17,29 @@ configs:
   Debug: debug
   Release: release
 
+packages:
+  MiragePackage:
+    url: https://github.com/haplollc/Mirage.git
+    exactVersion: 0.2.0
+
 targets:
-  Mirage:
+  MirageApp:
     type: application
     platform: iOS
-    deploymentTarget: "18.0"
+    productName: Mirage
+    deploymentTarget: "26.0"
     sources:
       - path: Mirage
         excludes:
           - Assets.xcassets
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.lad75020.Mirage
+        PRODUCT_BUNDLE_IDENTIFIER: fr.dubertrand.Mirage
         PRODUCT_NAME: Mirage
+        PRODUCT_MODULE_NAME: MirageApp
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CFBundleDisplayName: Mirage
+        INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription: Save images you create with Mirage to your photo library.
         INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
         INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: YES
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
@@ -39,23 +47,62 @@ targets:
         SUPPORTED_PLATFORMS: "iphoneos iphonesimulator"
         SUPPORTS_MACCATALYST: NO
         SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: NO
+        SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD: NO
         CODE_SIGN_STYLE: Automatic
-        DEVELOPMENT_TEAM: ""
-    scheme:
-      gatherCoverageData: true
-      testTargets:
-        - MirageTests
+        DEVELOPMENT_TEAM: RJYVGK9S3F
+    entitlements:
+      path: Mirage/Mirage.entitlements
+      properties:
+        com.apple.developer.kernel.extended-virtual-addressing: true
+        com.apple.developer.kernel.increased-memory-limit: true
+    dependencies:
+      - package: MiragePackage
+        product: Mirage
 
   MirageTests:
     type: bundle.unit-test
     platform: iOS
-    deploymentTarget: "18.0"
+    deploymentTarget: "26.0"
     sources:
       - path: MirageTests
     dependencies:
-      - target: Mirage
+      - target: MirageApp
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.lad75020.MirageTests
+        PRODUCT_BUNDLE_IDENTIFIER: fr.dubertrand.MirageTests
         GENERATE_INFOPLIST_FILE: YES
         CODE_SIGNING_ALLOWED: NO
+
+  MirageUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    deploymentTarget: "26.0"
+    sources:
+      - path: MirageUITests
+    dependencies:
+      - target: MirageApp
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: fr.dubertrand.MirageUITests
+        GENERATE_INFOPLIST_FILE: YES
+        CODE_SIGNING_ALLOWED: NO
+
+schemes:
+  Mirage:
+    build:
+      targets:
+        MirageApp: all
+    run:
+      config: Debug
+    test:
+      config: Debug
+      gatherCoverageData: true
+      targets:
+        - MirageTests
+        - MirageUITests
+    profile:
+      config: Release
+    analyze:
+      config: Debug
+    archive:
+      config: Release

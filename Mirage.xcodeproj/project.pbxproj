@@ -7,37 +7,139 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		927D9F7E57B6105199687A05 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E4AC44DEB6267E6790D42B3 /* ContentView.swift */; };
-		945CE29A30788B2C814048E4 /* AppMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39DFEA26D673382F6293CE1B /* AppMetadata.swift */; };
-		A12BFABF9E3F775554C10F34 /* MirageApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F375FB28305221DA8F937C4 /* MirageApp.swift */; };
+		01B179EC3F8DE4D82D3E1A3F /* ImageGenerationPerformanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC8439F2EAF2F27744753010 /* ImageGenerationPerformanceTests.swift */; };
+		035B572F5F000279A746A36D /* PreviewDependencies.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E181A9190519D628BF2DDDF /* PreviewDependencies.swift */; };
+		159C253E6DD61CF194CA55C5 /* ImageGenerationJourneyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B65B1A1A9CE593CA0CD6636 /* ImageGenerationJourneyTests.swift */; };
+		19EF5401C8BC607589C75AE9 /* ImageGenerationState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21A7887949DF177C39CEE4F5 /* ImageGenerationState.swift */; };
+		1F9BCDDCF57B1B714FBA30A6 /* ImageSafetyServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F545013751AA9A1DAA820E1 /* ImageSafetyServiceTests.swift */; };
+		29EC149F88D833DBA1CC58C5 /* ModelCatalogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB4502072A304C5C37548BD2 /* ModelCatalogTests.swift */; };
+		2AE01BEF2F8ACAB824245FEB /* PhotoLibrarySaver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74A7FA05553F7BB8C771AD8D /* PhotoLibrarySaver.swift */; };
+		34A28791D3248E816EFCAD82 /* ModelEvaluationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C49858EBF96EC82B97B5F642 /* ModelEvaluationTests.swift */; };
+		35D48F13BA49545E2F5E5106 /* AppMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39DFEA26D673382F6293CE1B /* AppMetadata.swift */; };
+		4ACA286E7D579E3322AEDF4C /* MirageInferenceServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CED3A2A740D98E9D8719B67 /* MirageInferenceServiceTests.swift */; };
+		4B453CE4328B7444787DBF4A /* ImageGenerationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 379D4AA64B8FF6F3A678FA9C /* ImageGenerationView.swift */; };
+		4CA455E3CF5FB4A86892CCF7 /* Mirage in Frameworks */ = {isa = PBXBuildFile; productRef = E64E2B68AEB79CFB9B9383AA /* Mirage */; };
+		5266907581BA72BAE7B45184 /* ImageSafetyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3631E6F88407167DDD1E3228 /* ImageSafetyService.swift */; };
+		54036E32E9D0D91D5DBC38DC /* ModelAvailability+Presentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5279DD4B0CA093EF66AAB0E5 /* ModelAvailability+Presentation.swift */; };
+		5E55D57A23677F8C6CAD176E /* PromptSafetyEvaluationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AC10C704A8566DFD8C39DB2 /* PromptSafetyEvaluationTests.swift */; };
+		634BBF2C72EFF6988CB5F754 /* GeneratedImageSafetyEvaluationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14AA9E78F19BC1E782C66C40 /* GeneratedImageSafetyEvaluationTests.swift */; };
+		6916C02762A294C46DC89D75 /* PhotoLibrarySaverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D14933C9BA42DAA7B9595CF3 /* PhotoLibrarySaverTests.swift */; };
+		6F7F330149408E1CD5CAAE9C /* ModelDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = F963D9348F95C0E314766145 /* ModelDescriptor.swift */; };
+		7D840E0035B28ED497CC7AAA /* ModelFileResolverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93DB65F2870DF1C11F19377B /* ModelFileResolverTests.swift */; };
+		7DE1111751F6A01CCE349580 /* ModelCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = A955EFC158227CE81D0C2538 /* ModelCatalog.swift */; };
+		8299ACA3946026B277DAA764 /* ImageGenerationViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBA712E4100B5034BAB67EF2 /* ImageGenerationViewModelTests.swift */; };
+		8B3C09453A64265ECC94906C /* ImageGenerationViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA8F6012B4D6954F8CC04DAF /* ImageGenerationViewModel.swift */; };
+		910B8EEB6DD46C765A5C3973 /* AvailableMemoryProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE98AB21C46383A0665385E7 /* AvailableMemoryProvider.swift */; };
+		9144FA0626781B375675A810 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 36B28C3572B1A0187D36CED4 /* PrivacyInfo.xcprivacy */; };
+		992812755DDC82A0EA89B9BE /* ModelAssetSecurityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 385D434A3240F18D1CE3F7FA /* ModelAssetSecurityTests.swift */; };
+		A64947CBBDBFFE344B3D534F /* ImageGenerationViewModelSaveTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11D1FB30EF3BE18ECD1BC974 /* ImageGenerationViewModelSaveTests.swift */; };
+		A72ECDDF5E46C17CE474C3B6 /* TestFixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = 192DCC911B7C2A49CD668980 /* TestFixtures.swift */; };
+		A9BEF46FFB7A1AA9EB5300E0 /* ImageGenerationSecurityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E6D3BA289F7B1C9971F1DB7 /* ImageGenerationSecurityTests.swift */; };
 		AB526E4C90E39E5CB079A9EF /* AppMetadataTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77EBBEE20F5664A9A34CB356 /* AppMetadataTests.swift */; };
+		CCB47305FB78E2B20E48DDE4 /* ImageGenerationStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AA5F0F1EDC25DF50CA983C0 /* ImageGenerationStateTests.swift */; };
+		CD97EA41FC98F191613D8690 /* PromptSafetyFixtures.json in Resources */ = {isa = PBXBuildFile; fileRef = 3C945D258E0EB1A9BC98764F /* PromptSafetyFixtures.json */; };
+		D036928F79813F2B44C1593A /* ModelFileResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5FCABF1C324BF764627A0AE /* ModelFileResolver.swift */; };
+		EA53B2E3C5CCF7A1ACC21F45 /* MirageInferenceServiceIntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 060370870507F6B8EC134F0E /* MirageInferenceServiceIntegrationTests.swift */; };
+		EA5E6F10B3C667F6AF82F7E7 /* MirageInferenceService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08411B555B3FCCDDDBCDA3DB /* MirageInferenceService.swift */; };
+		ED3AE59816D1BB0242157CB5 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E4AC44DEB6267E6790D42B3 /* ContentView.swift */; };
+		EEE5A006678E7B0905167471 /* ImageGenerationDependencies.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFDF8585986A3D026C1C04E7 /* ImageGenerationDependencies.swift */; };
+		F7ECA665CEEE2476657AEB85 /* LiveDependencies.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90A2B76600684ED880561853 /* LiveDependencies.swift */; };
+		F9A65822F52F09B083E5C8D9 /* MirageApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F375FB28305221DA8F937C4 /* MirageApp.swift */; };
+		FB7213DE092EDD340EBDF7DC /* ModelEvaluationManifest.json in Resources */ = {isa = PBXBuildFile; fileRef = E51A194620940A65489104D6 /* ModelEvaluationManifest.json */; };
+		FB74432ABFAB3A18D96A21CC /* DeviceCapabilityProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = F704262BFB5F6400C66AA592 /* DeviceCapabilityProvider.swift */; };
+		FCD9188AAAC624E5B827954E /* ImageGenerationViewModelModelSelectionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5299B5067A5BD317C5C61611 /* ImageGenerationViewModelModelSelectionTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		135E775C87B756E266F879B7 /* PBXContainerItemProxy */ = {
+		6E716AE57B3A6A824CC3500A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 64BB6AA7F87D7B7DEDE3C3FE /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = B48E88F0AED84BCCAF04F865;
-			remoteInfo = Mirage;
+			remoteGlobalIDString = 4A359C5F6C78BA5B0561E815;
+			remoteInfo = MirageApp;
+		};
+		ED1474D9F2CE54FC81BECA57 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 64BB6AA7F87D7B7DEDE3C3FE /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 4A359C5F6C78BA5B0561E815;
+			remoteInfo = MirageApp;
 		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		02FB5AF7487AD521492FE23C /* MirageTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = MirageTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		060370870507F6B8EC134F0E /* MirageInferenceServiceIntegrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MirageInferenceServiceIntegrationTests.swift; sourceTree = "<group>"; };
+		08411B555B3FCCDDDBCDA3DB /* MirageInferenceService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MirageInferenceService.swift; sourceTree = "<group>"; };
 		0F375FB28305221DA8F937C4 /* MirageApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MirageApp.swift; sourceTree = "<group>"; };
-		1F1B24601B3BA9FBB7FA9EBA /* Mirage.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Mirage.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		11D1FB30EF3BE18ECD1BC974 /* ImageGenerationViewModelSaveTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageGenerationViewModelSaveTests.swift; sourceTree = "<group>"; };
+		14AA9E78F19BC1E782C66C40 /* GeneratedImageSafetyEvaluationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneratedImageSafetyEvaluationTests.swift; sourceTree = "<group>"; };
+		192DCC911B7C2A49CD668980 /* TestFixtures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestFixtures.swift; sourceTree = "<group>"; };
+		1E181A9190519D628BF2DDDF /* PreviewDependencies.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewDependencies.swift; sourceTree = "<group>"; };
+		1E6D3BA289F7B1C9971F1DB7 /* ImageGenerationSecurityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageGenerationSecurityTests.swift; sourceTree = "<group>"; };
+		21A7887949DF177C39CEE4F5 /* ImageGenerationState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageGenerationState.swift; sourceTree = "<group>"; };
+		3631E6F88407167DDD1E3228 /* ImageSafetyService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageSafetyService.swift; sourceTree = "<group>"; };
+		36B28C3572B1A0187D36CED4 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		379D4AA64B8FF6F3A678FA9C /* ImageGenerationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageGenerationView.swift; sourceTree = "<group>"; };
+		385D434A3240F18D1CE3F7FA /* ModelAssetSecurityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelAssetSecurityTests.swift; sourceTree = "<group>"; };
 		39DFEA26D673382F6293CE1B /* AppMetadata.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppMetadata.swift; sourceTree = "<group>"; };
+		3C0BAACB1C9C9E6A58736172 /* MirageUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = MirageUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		3C945D258E0EB1A9BC98764F /* PromptSafetyFixtures.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = PromptSafetyFixtures.json; sourceTree = "<group>"; };
 		3E4AC44DEB6267E6790D42B3 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		4AA5F0F1EDC25DF50CA983C0 /* ImageGenerationStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageGenerationStateTests.swift; sourceTree = "<group>"; };
+		4AC10C704A8566DFD8C39DB2 /* PromptSafetyEvaluationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PromptSafetyEvaluationTests.swift; sourceTree = "<group>"; };
+		4B65B1A1A9CE593CA0CD6636 /* ImageGenerationJourneyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageGenerationJourneyTests.swift; sourceTree = "<group>"; };
+		5279DD4B0CA093EF66AAB0E5 /* ModelAvailability+Presentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ModelAvailability+Presentation.swift"; sourceTree = "<group>"; };
+		5299B5067A5BD317C5C61611 /* ImageGenerationViewModelModelSelectionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageGenerationViewModelModelSelectionTests.swift; sourceTree = "<group>"; };
+		5CED3A2A740D98E9D8719B67 /* MirageInferenceServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MirageInferenceServiceTests.swift; sourceTree = "<group>"; };
+		5F9A7EDCC1A00CBA18186F17 /* Mirage.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Mirage.entitlements; sourceTree = "<group>"; };
+		74A7FA05553F7BB8C771AD8D /* PhotoLibrarySaver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoLibrarySaver.swift; sourceTree = "<group>"; };
 		77EBBEE20F5664A9A34CB356 /* AppMetadataTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppMetadataTests.swift; sourceTree = "<group>"; };
+		8F545013751AA9A1DAA820E1 /* ImageSafetyServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageSafetyServiceTests.swift; sourceTree = "<group>"; };
+		90A2B76600684ED880561853 /* LiveDependencies.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveDependencies.swift; sourceTree = "<group>"; };
+		93DB65F2870DF1C11F19377B /* ModelFileResolverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelFileResolverTests.swift; sourceTree = "<group>"; };
+		A955EFC158227CE81D0C2538 /* ModelCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelCatalog.swift; sourceTree = "<group>"; };
+		BFDF8585986A3D026C1C04E7 /* ImageGenerationDependencies.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageGenerationDependencies.swift; sourceTree = "<group>"; };
+		C49858EBF96EC82B97B5F642 /* ModelEvaluationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelEvaluationTests.swift; sourceTree = "<group>"; };
+		D14933C9BA42DAA7B9595CF3 /* PhotoLibrarySaverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoLibrarySaverTests.swift; sourceTree = "<group>"; };
+		D5E60D0718A0C7C131195768 /* Mirage.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Mirage.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		DE98AB21C46383A0665385E7 /* AvailableMemoryProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AvailableMemoryProvider.swift; sourceTree = "<group>"; };
+		E51A194620940A65489104D6 /* ModelEvaluationManifest.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = ModelEvaluationManifest.json; sourceTree = "<group>"; };
+		EA8F6012B4D6954F8CC04DAF /* ImageGenerationViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageGenerationViewModel.swift; sourceTree = "<group>"; };
+		EB4502072A304C5C37548BD2 /* ModelCatalogTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelCatalogTests.swift; sourceTree = "<group>"; };
+		F5FCABF1C324BF764627A0AE /* ModelFileResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelFileResolver.swift; sourceTree = "<group>"; };
+		F704262BFB5F6400C66AA592 /* DeviceCapabilityProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceCapabilityProvider.swift; sourceTree = "<group>"; };
+		F963D9348F95C0E314766145 /* ModelDescriptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelDescriptor.swift; sourceTree = "<group>"; };
+		FBA712E4100B5034BAB67EF2 /* ImageGenerationViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageGenerationViewModelTests.swift; sourceTree = "<group>"; };
+		FC8439F2EAF2F27744753010 /* ImageGenerationPerformanceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageGenerationPerformanceTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFrameworksBuildPhase section */
+		90A586727CBCB01A4991AB1B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4CA455E3CF5FB4A86892CCF7 /* Mirage in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
 /* Begin PBXGroup section */
+		36FB1907683206573EC48EE2 /* SecurityTests */ = {
+			isa = PBXGroup;
+			children = (
+				385D434A3240F18D1CE3F7FA /* ModelAssetSecurityTests.swift */,
+			);
+			path = SecurityTests;
+			sourceTree = "<group>";
+		};
 		3E514C3C34FE85763C0BDEC4 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				1F1B24601B3BA9FBB7FA9EBA /* Mirage.app */,
+				D5E60D0718A0C7C131195768 /* Mirage.app */,
 				02FB5AF7487AD521492FE23C /* MirageTests.xctest */,
+				3C0BAACB1C9C9E6A58736172 /* MirageUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -45,19 +147,75 @@
 		47B6A7737E43768798F33CB1 /* MirageTests */ = {
 			isa = PBXGroup;
 			children = (
+				E77267972BA93D896CB1D328 /* AIEvaluation */,
+				36FB1907683206573EC48EE2 /* SecurityTests */,
 				77EBBEE20F5664A9A34CB356 /* AppMetadataTests.swift */,
+				FC8439F2EAF2F27744753010 /* ImageGenerationPerformanceTests.swift */,
+				1E6D3BA289F7B1C9971F1DB7 /* ImageGenerationSecurityTests.swift */,
+				4AA5F0F1EDC25DF50CA983C0 /* ImageGenerationStateTests.swift */,
+				5299B5067A5BD317C5C61611 /* ImageGenerationViewModelModelSelectionTests.swift */,
+				11D1FB30EF3BE18ECD1BC974 /* ImageGenerationViewModelSaveTests.swift */,
+				FBA712E4100B5034BAB67EF2 /* ImageGenerationViewModelTests.swift */,
+				8F545013751AA9A1DAA820E1 /* ImageSafetyServiceTests.swift */,
+				060370870507F6B8EC134F0E /* MirageInferenceServiceIntegrationTests.swift */,
+				5CED3A2A740D98E9D8719B67 /* MirageInferenceServiceTests.swift */,
+				EB4502072A304C5C37548BD2 /* ModelCatalogTests.swift */,
+				93DB65F2870DF1C11F19377B /* ModelFileResolverTests.swift */,
+				D14933C9BA42DAA7B9595CF3 /* PhotoLibrarySaverTests.swift */,
+				192DCC911B7C2A49CD668980 /* TestFixtures.swift */,
 			);
 			path = MirageTests;
+			sourceTree = "<group>";
+		};
+		5B3BEB2467FC64E52BC3ED65 /* Features */ = {
+			isa = PBXGroup;
+			children = (
+				C2BE6B85C3116C76DE9D6028 /* ImageGeneration */,
+			);
+			path = Features;
+			sourceTree = "<group>";
+		};
+		6B7783D9F5A143B7C6D7BB91 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				36B28C3572B1A0187D36CED4 /* PrivacyInfo.xcprivacy */,
+			);
+			path = Resources;
 			sourceTree = "<group>";
 		};
 		9427F722FF27C09C187EDBD5 /* Mirage */ = {
 			isa = PBXGroup;
 			children = (
+				5B3BEB2467FC64E52BC3ED65 /* Features */,
+				6B7783D9F5A143B7C6D7BB91 /* Resources */,
 				39DFEA26D673382F6293CE1B /* AppMetadata.swift */,
 				3E4AC44DEB6267E6790D42B3 /* ContentView.swift */,
+				5F9A7EDCC1A00CBA18186F17 /* Mirage.entitlements */,
 				0F375FB28305221DA8F937C4 /* MirageApp.swift */,
 			);
 			path = Mirage;
+			sourceTree = "<group>";
+		};
+		C2BE6B85C3116C76DE9D6028 /* ImageGeneration */ = {
+			isa = PBXGroup;
+			children = (
+				DE98AB21C46383A0665385E7 /* AvailableMemoryProvider.swift */,
+				F704262BFB5F6400C66AA592 /* DeviceCapabilityProvider.swift */,
+				BFDF8585986A3D026C1C04E7 /* ImageGenerationDependencies.swift */,
+				21A7887949DF177C39CEE4F5 /* ImageGenerationState.swift */,
+				379D4AA64B8FF6F3A678FA9C /* ImageGenerationView.swift */,
+				EA8F6012B4D6954F8CC04DAF /* ImageGenerationViewModel.swift */,
+				3631E6F88407167DDD1E3228 /* ImageSafetyService.swift */,
+				90A2B76600684ED880561853 /* LiveDependencies.swift */,
+				08411B555B3FCCDDDBCDA3DB /* MirageInferenceService.swift */,
+				5279DD4B0CA093EF66AAB0E5 /* ModelAvailability+Presentation.swift */,
+				A955EFC158227CE81D0C2538 /* ModelCatalog.swift */,
+				F963D9348F95C0E314766145 /* ModelDescriptor.swift */,
+				F5FCABF1C324BF764627A0AE /* ModelFileResolver.swift */,
+				74A7FA05553F7BB8C771AD8D /* PhotoLibrarySaver.swift */,
+				1E181A9190519D628BF2DDDF /* PreviewDependencies.swift */,
+			);
+			path = ImageGeneration;
 			sourceTree = "<group>";
 		};
 		CA1F54A8C4CAA0117425397F = {
@@ -65,40 +223,83 @@
 			children = (
 				9427F722FF27C09C187EDBD5 /* Mirage */,
 				47B6A7737E43768798F33CB1 /* MirageTests */,
+				D5896CEF5FF055327E209042 /* MirageUITests */,
 				3E514C3C34FE85763C0BDEC4 /* Products */,
 			);
+			sourceTree = "<group>";
+		};
+		D5896CEF5FF055327E209042 /* MirageUITests */ = {
+			isa = PBXGroup;
+			children = (
+				4B65B1A1A9CE593CA0CD6636 /* ImageGenerationJourneyTests.swift */,
+			);
+			path = MirageUITests;
+			sourceTree = "<group>";
+		};
+		E77267972BA93D896CB1D328 /* AIEvaluation */ = {
+			isa = PBXGroup;
+			children = (
+				14AA9E78F19BC1E782C66C40 /* GeneratedImageSafetyEvaluationTests.swift */,
+				E51A194620940A65489104D6 /* ModelEvaluationManifest.json */,
+				C49858EBF96EC82B97B5F642 /* ModelEvaluationTests.swift */,
+				4AC10C704A8566DFD8C39DB2 /* PromptSafetyEvaluationTests.swift */,
+				3C945D258E0EB1A9BC98764F /* PromptSafetyFixtures.json */,
+			);
+			path = AIEvaluation;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		B48E88F0AED84BCCAF04F865 /* Mirage */ = {
+		4A359C5F6C78BA5B0561E815 /* MirageApp */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = FE72F8760A20C3845CB01CE3 /* Build configuration list for PBXNativeTarget "Mirage" */;
+			buildConfigurationList = C518D8E16B35E754661E3936 /* Build configuration list for PBXNativeTarget "MirageApp" */;
 			buildPhases = (
-				454DA222E1FEEBC5F51C41C4 /* Sources */,
+				05640FEA7B03E3C02A854258 /* Sources */,
+				7AF5CEA23500C754F426799A /* Resources */,
+				90A586727CBCB01A4991AB1B /* Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
-			name = Mirage;
+			name = MirageApp;
+			packageProductDependencies = (
+				E64E2B68AEB79CFB9B9383AA /* Mirage */,
+			);
+			productName = MirageApp;
+			productReference = D5E60D0718A0C7C131195768 /* Mirage.app */;
+			productType = "com.apple.product-type.application";
+		};
+		54CB580AD68E43457B824B4F /* MirageUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 004524D13AF4F0EE4DBDAD4C /* Build configuration list for PBXNativeTarget "MirageUITests" */;
+			buildPhases = (
+				33AFA682EA7E8481CFBDA258 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				F4BC72DC13FE52E7EB68DDCE /* PBXTargetDependency */,
+			);
+			name = MirageUITests;
 			packageProductDependencies = (
 			);
-			productName = Mirage;
-			productReference = 1F1B24601B3BA9FBB7FA9EBA /* Mirage.app */;
-			productType = "com.apple.product-type.application";
+			productName = MirageUITests;
+			productReference = 3C0BAACB1C9C9E6A58736172 /* MirageUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 		F512311A17EEC9EF51CB4BEE /* MirageTests */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 0B3A319713A6770BD8357FFB /* Build configuration list for PBXNativeTarget "MirageTests" */;
 			buildPhases = (
 				A05AF7B3101122BFBD7695D4 /* Sources */,
+				79286E620466C3E5F1DBD068 /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				AA537B8D775152487F5AE46E /* PBXTargetDependency */,
+				9DD960B0ECFC7424FE2CDD10 /* PBXTargetDependency */,
 			);
 			name = MirageTests;
 			packageProductDependencies = (
@@ -116,9 +317,12 @@
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
-					B48E88F0AED84BCCAF04F865 = {
-						DevelopmentTeam = "";
+					4A359C5F6C78BA5B0561E815 = {
+						DevelopmentTeam = RJYVGK9S3F;
 						ProvisioningStyle = Automatic;
+					};
+					54CB580AD68E43457B824B4F = {
+						TestTargetID = 4A359C5F6C78BA5B0561E815;
 					};
 				};
 			};
@@ -131,25 +335,72 @@
 			);
 			mainGroup = CA1F54A8C4CAA0117425397F;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				5AB4E45C1A6247B4BC9EB1A3 /* XCRemoteSwiftPackageReference "Mirage" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 3E514C3C34FE85763C0BDEC4 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				B48E88F0AED84BCCAF04F865 /* Mirage */,
+				4A359C5F6C78BA5B0561E815 /* MirageApp */,
 				F512311A17EEC9EF51CB4BEE /* MirageTests */,
+				54CB580AD68E43457B824B4F /* MirageUITests */,
 			);
 		};
 /* End PBXProject section */
 
+/* Begin PBXResourcesBuildPhase section */
+		79286E620466C3E5F1DBD068 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FB7213DE092EDD340EBDF7DC /* ModelEvaluationManifest.json in Resources */,
+				CD97EA41FC98F191613D8690 /* PromptSafetyFixtures.json in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		7AF5CEA23500C754F426799A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9144FA0626781B375675A810 /* PrivacyInfo.xcprivacy in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
-		454DA222E1FEEBC5F51C41C4 /* Sources */ = {
+		05640FEA7B03E3C02A854258 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				945CE29A30788B2C814048E4 /* AppMetadata.swift in Sources */,
-				927D9F7E57B6105199687A05 /* ContentView.swift in Sources */,
-				A12BFABF9E3F775554C10F34 /* MirageApp.swift in Sources */,
+				35D48F13BA49545E2F5E5106 /* AppMetadata.swift in Sources */,
+				910B8EEB6DD46C765A5C3973 /* AvailableMemoryProvider.swift in Sources */,
+				ED3AE59816D1BB0242157CB5 /* ContentView.swift in Sources */,
+				FB74432ABFAB3A18D96A21CC /* DeviceCapabilityProvider.swift in Sources */,
+				EEE5A006678E7B0905167471 /* ImageGenerationDependencies.swift in Sources */,
+				19EF5401C8BC607589C75AE9 /* ImageGenerationState.swift in Sources */,
+				4B453CE4328B7444787DBF4A /* ImageGenerationView.swift in Sources */,
+				8B3C09453A64265ECC94906C /* ImageGenerationViewModel.swift in Sources */,
+				5266907581BA72BAE7B45184 /* ImageSafetyService.swift in Sources */,
+				F7ECA665CEEE2476657AEB85 /* LiveDependencies.swift in Sources */,
+				F9A65822F52F09B083E5C8D9 /* MirageApp.swift in Sources */,
+				EA5E6F10B3C667F6AF82F7E7 /* MirageInferenceService.swift in Sources */,
+				54036E32E9D0D91D5DBC38DC /* ModelAvailability+Presentation.swift in Sources */,
+				7DE1111751F6A01CCE349580 /* ModelCatalog.swift in Sources */,
+				6F7F330149408E1CD5CAAE9C /* ModelDescriptor.swift in Sources */,
+				D036928F79813F2B44C1593A /* ModelFileResolver.swift in Sources */,
+				2AE01BEF2F8ACAB824245FEB /* PhotoLibrarySaver.swift in Sources */,
+				035B572F5F000279A746A36D /* PreviewDependencies.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		33AFA682EA7E8481CFBDA258 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				159C253E6DD61CF194CA55C5 /* ImageGenerationJourneyTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -158,65 +409,129 @@
 			buildActionMask = 2147483647;
 			files = (
 				AB526E4C90E39E5CB079A9EF /* AppMetadataTests.swift in Sources */,
+				634BBF2C72EFF6988CB5F754 /* GeneratedImageSafetyEvaluationTests.swift in Sources */,
+				01B179EC3F8DE4D82D3E1A3F /* ImageGenerationPerformanceTests.swift in Sources */,
+				A9BEF46FFB7A1AA9EB5300E0 /* ImageGenerationSecurityTests.swift in Sources */,
+				CCB47305FB78E2B20E48DDE4 /* ImageGenerationStateTests.swift in Sources */,
+				FCD9188AAAC624E5B827954E /* ImageGenerationViewModelModelSelectionTests.swift in Sources */,
+				A64947CBBDBFFE344B3D534F /* ImageGenerationViewModelSaveTests.swift in Sources */,
+				8299ACA3946026B277DAA764 /* ImageGenerationViewModelTests.swift in Sources */,
+				1F9BCDDCF57B1B714FBA30A6 /* ImageSafetyServiceTests.swift in Sources */,
+				EA53B2E3C5CCF7A1ACC21F45 /* MirageInferenceServiceIntegrationTests.swift in Sources */,
+				4ACA286E7D579E3322AEDF4C /* MirageInferenceServiceTests.swift in Sources */,
+				992812755DDC82A0EA89B9BE /* ModelAssetSecurityTests.swift in Sources */,
+				29EC149F88D833DBA1CC58C5 /* ModelCatalogTests.swift in Sources */,
+				34A28791D3248E816EFCAD82 /* ModelEvaluationTests.swift in Sources */,
+				7D840E0035B28ED497CC7AAA /* ModelFileResolverTests.swift in Sources */,
+				6916C02762A294C46DC89D75 /* PhotoLibrarySaverTests.swift in Sources */,
+				5E55D57A23677F8C6CAD176E /* PromptSafetyEvaluationTests.swift in Sources */,
+				A72ECDDF5E46C17CE474C3B6 /* TestFixtures.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		AA537B8D775152487F5AE46E /* PBXTargetDependency */ = {
+		9DD960B0ECFC7424FE2CDD10 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = B48E88F0AED84BCCAF04F865 /* Mirage */;
-			targetProxy = 135E775C87B756E266F879B7 /* PBXContainerItemProxy */;
+			target = 4A359C5F6C78BA5B0561E815 /* MirageApp */;
+			targetProxy = 6E716AE57B3A6A824CC3500A /* PBXContainerItemProxy */;
+		};
+		F4BC72DC13FE52E7EB68DDCE /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 4A359C5F6C78BA5B0561E815 /* MirageApp */;
+			targetProxy = ED1474D9F2CE54FC81BECA57 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		2EF01FCF2EB82C6BB0EA2882 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGNING_ALLOWED = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = fr.dubertrand.MirageUITests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = MirageApp;
+			};
+			name = Debug;
+		};
+		342781DEFE912A9E8096F9E0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Mirage/Mirage.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = RJYVGK9S3F;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Mirage;
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Save images you create with Mirage to your photo library.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = fr.dubertrand.Mirage;
+				PRODUCT_MODULE_NAME = MirageApp;
+				PRODUCT_NAME = Mirage;
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 		59A1B4D7CC689EC35C046052 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGNING_ALLOWED = NO;
 				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.lad75020.MirageTests;
+				PRODUCT_BUNDLE_IDENTIFIER = fr.dubertrand.MirageTests;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Mirage.app/Mirage";
 			};
 			name = Release;
 		};
-		79C1EAB9F8AFBD873672F40F /* Debug */ = {
+		79F451A085A72104BC20743C /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = "";
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGNING_ALLOWED = NO;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = Mirage;
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
-				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.lad75020.Mirage;
-				PRODUCT_NAME = Mirage;
+				PRODUCT_BUNDLE_IDENTIFIER = fr.dubertrand.MirageUITests;
 				SDKROOT = iphoneos;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SUPPORTS_MACCATALYST = NO;
-				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = MirageApp;
 			};
-			name = Debug;
+			name = Release;
 		};
 		9D8C3F682E846E92C1216F90 /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -270,7 +585,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -280,6 +595,37 @@
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		C934E267235FD0F3514BBF8F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Mirage/Mirage.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = RJYVGK9S3F;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Mirage;
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Save images you create with Mirage to your photo library.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = fr.dubertrand.Mirage;
+				PRODUCT_MODULE_NAME = MirageApp;
+				PRODUCT_NAME = Mirage;
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
 		};
@@ -329,7 +675,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -347,54 +693,45 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGNING_ALLOWED = NO;
 				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.lad75020.MirageTests;
+				PRODUCT_BUNDLE_IDENTIFIER = fr.dubertrand.MirageTests;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Mirage.app/Mirage";
 			};
 			name = Debug;
 		};
-		F892431146CEB0352DEBF2E2 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = "";
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = Mirage;
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
-				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.lad75020.Mirage;
-				PRODUCT_NAME = Mirage;
-				SDKROOT = iphoneos;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SUPPORTS_MACCATALYST = NO;
-				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Release;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		004524D13AF4F0EE4DBDAD4C /* Build configuration list for PBXNativeTarget "MirageUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2EF01FCF2EB82C6BB0EA2882 /* Debug */,
+				79F451A085A72104BC20743C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
 		0B3A319713A6770BD8357FFB /* Build configuration list for PBXNativeTarget "MirageTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				DB084697A2E2F893339710F9 /* Debug */,
 				59A1B4D7CC689EC35C046052 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		C518D8E16B35E754661E3936 /* Build configuration list for PBXNativeTarget "MirageApp" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C934E267235FD0F3514BBF8F /* Debug */,
+				342781DEFE912A9E8096F9E0 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
@@ -408,16 +745,26 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
-		FE72F8760A20C3845CB01CE3 /* Build configuration list for PBXNativeTarget "Mirage" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				79C1EAB9F8AFBD873672F40F /* Debug */,
-				F892431146CEB0352DEBF2E2 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
-		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		5AB4E45C1A6247B4BC9EB1A3 /* XCRemoteSwiftPackageReference "Mirage" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/haplollc/Mirage.git";
+			requirement = {
+				kind = exactVersion;
+				version = 0.2.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		E64E2B68AEB79CFB9B9383AA /* Mirage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5AB4E45C1A6247B4BC9EB1A3 /* XCRemoteSwiftPackageReference "Mirage" */;
+			productName = Mirage;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 64BB6AA7F87D7B7DEDE3C3FE /* Project object */;
 }

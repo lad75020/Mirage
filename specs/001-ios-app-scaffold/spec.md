@@ -76,6 +76,6 @@ As a developer, I can open a native Xcode project, select the Mirage scheme, and
 
 - Mirage is a new product foundation; domain features, persistence, networking, analytics, and authentication are outside this initial scaffold.
 - The initial bundle identifier is `com.lad75020.Mirage` and can be changed before distribution if needed.
-- The minimum supported operating system is iOS 18.0.
+- The minimum supported operating system is iOS 26.0.
 - Both iPhone and iPad are supported because both run iOS/iPadOS application binaries; desktop and spatial platforms remain out of scope.
 - Native platform frameworks are sufficient for the initial scaffold, so no third-party runtime dependency is required.

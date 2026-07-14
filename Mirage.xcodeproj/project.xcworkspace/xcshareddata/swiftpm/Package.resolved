@@ -1,0 +1,15 @@
+{
+  "originHash" : "f6360d23bd99557caad0ebdd7cb5954c3349f068e070519aa1a5c12e0a8b6399",
+  "pins" : [
+    {
+      "identity" : "mirage",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/haplollc/Mirage.git",
+      "state" : {
+        "revision" : "34b9bbf0b17a1aa42593d7e9d64ff55091944ec9",
+        "version" : "0.2.0"
+      }
+    }
+  ],
+  "version" : 3
+}

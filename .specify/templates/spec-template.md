@@ -10,55 +10,28 @@
 
 ## User Scenarios & Testing *(mandatory)*
 
-<!--
-  IMPORTANT: User stories should be PRIORITIZED as user journeys ordered by importance.
-  Each user story/journey must be INDEPENDENTLY TESTABLE - meaning if you implement just ONE of them,
-  you should still have a viable MVP (Minimum Viable Product) that delivers value.
-
-  Assign priorities (P1, P2, P3, etc.) to each story, where P1 is the most critical.
-  Think of each story as a standalone slice of functionality that can be:
-  - Developed independently
-  - Tested independently
-  - Deployed independently
-  - Demonstrated to users independently
--->
-
 ### User Story 1 - [Brief Title] (Priority: P1)
 
-[Describe this user journey in plain language]
+[Describe the highest-value user journey in plain language.]
 
-**Why this priority**: [Explain the value and why it has this priority level]
+**Why this priority**: [Explain its independent user value.]
 
-**Independent Test**: [Describe how this can be tested independently - e.g., "Can be fully tested by [specific action] and delivers [specific value]"]
+**Independent Test**: [Describe a complete, observable test of this story.]
 
 **Acceptance Scenarios**:
 
 1. **Given** [initial state], **When** [action], **Then** [expected outcome]
-2. **Given** [initial state], **When** [action], **Then** [expected outcome]
+2. **Given** [degraded or unavailable state], **When** [action], **Then** [safe fallback]
 
 ---
 
 ### User Story 2 - [Brief Title] (Priority: P2)
 
-[Describe this user journey in plain language]
+[Describe another independently valuable journey.]
 
-**Why this priority**: [Explain the value and why it has this priority level]
+**Why this priority**: [Explain its value.]
 
-**Independent Test**: [Describe how this can be tested independently]
-
-**Acceptance Scenarios**:
-
-1. **Given** [initial state], **When** [action], **Then** [expected outcome]
-
----
-
-### User Story 3 - [Brief Title] (Priority: P3)
-
-[Describe this user journey in plain language]
-
-**Why this priority**: [Explain the value and why it has this priority level]
-
-**Independent Test**: [Describe how this can be tested independently]
+**Independent Test**: [Describe how to verify it independently.]
 
 **Acceptance Scenarios**:
 
@@ -66,66 +39,75 @@
 
 ---
 
-[Add more user stories as needed, each with an assigned priority]
+[Add further prioritized stories only when needed.]
 
 ### Edge Cases
 
-<!--
-  ACTION REQUIRED: The content in this section represents placeholders.
-  Fill them out with the right edge cases.
--->
-
-- What happens when [boundary condition]?
-- How does system handle [error scenario]?
+- What happens when required device, model, locale, asset, network, storage, or
+  permission capabilities are unavailable?
+- How does the feature handle cancellation, interruption, backgrounding, memory
+  pressure, malformed input, and partial output?
+- How does the feature remain usable with VoiceOver, Dynamic Type, reduced
+  motion, increased contrast, and compact layouts?
+- How are prompt injection, unsafe tool requests, unauthorized access, data
+  exposure, and guardrail false positives handled when applicable?
 
 ## Requirements *(mandatory)*
 
-<!--
-  ACTION REQUIRED: The content in this section represents placeholders.
-  Fill them out with the right functional requirements.
--->
-
 ### Functional Requirements
 
-- **FR-001**: System MUST [specific capability, e.g., "allow users to create accounts"]
-- **FR-002**: System MUST [specific capability, e.g., "validate email addresses"]
-- **FR-003**: Users MUST be able to [key interaction, e.g., "reset their password"]
-- **FR-004**: System MUST [data requirement, e.g., "persist user preferences"]
-- **FR-005**: System MUST [behavior, e.g., "log all security events"]
+- **FR-001**: The application MUST [specific, testable capability].
+- **FR-002**: Users MUST be able to [observable user action].
+- **FR-003**: The application MUST [safe degraded or fallback behavior].
+- **FR-004**: The application MUST [accessibility requirement].
 
-*Example of marking unclear requirements:*
+### Constitutional Impact Assessment *(mandatory)*
 
-- **FR-006**: System MUST authenticate users via [NEEDS CLARIFICATION: auth method not specified - email/password, SSO, OAuth?]
-- **FR-007**: System MUST retain user data for [NEEDS CLARIFICATION: retention period not specified]
+Every subsection MUST state concrete requirements or explicitly state that it
+has no impact and explain why.
 
-### Key Entities *(include if feature involves data)*
+#### Platform and UI
 
-- **[Entity 1]**: [What it represents, key attributes without implementation]
-- **[Entity 2]**: [What it represents, relationships to other entities]
+- **PLAT-001**: [iOS 26+, SwiftUI behavior, supported device classes, and
+  accessibility impact.]
+
+#### AI and Model Behavior
+
+- **AI-001**: [Framework/use case, availability, fallback, quality threshold,
+  context/output limits, memory/energy target, and physical-device needs.]
+
+#### Prompt and Tool Safety
+
+- **SAFE-001**: [Instruction boundary, untrusted inputs, output validation,
+  tool allowlist, confirmations, misuse, injection, bias, refusal, and false-
+  positive behavior.]
+
+#### Security and Privacy
+
+- **SEC-001**: [Data inventory, minimization, storage, transport, authorization,
+  logging, retention, deletion, MASVS controls, and authorized runtime tests.]
+
+### Key Entities *(include when the feature manages data)*
+
+- **[Entity]**: [Meaning, lifecycle, sensitivity, ownership, and relationships.]
 
 ## Success Criteria *(mandatory)*
 
-<!--
-  ACTION REQUIRED: Define measurable success criteria.
-  These must be technology-agnostic and measurable.
--->
-
 ### Measurable Outcomes
 
-- **SC-001**: [Measurable metric, e.g., "Users can complete account creation in under 2 minutes"]
-- **SC-002**: [Measurable metric, e.g., "System handles 1000 concurrent users without degradation"]
-- **SC-003**: [User satisfaction metric, e.g., "90% of users successfully complete primary task on first attempt"]
-- **SC-004**: [Business metric, e.g., "Reduce support tickets related to [X] by 50%"]
+- **SC-001**: [User-focused correctness or completion metric.]
+- **SC-002**: [Accessibility outcome.]
+- **SC-003**: [Latency, memory, energy, or reliability outcome.]
+- **SC-004**: [AI quality/safety/fallback outcome when applicable.]
+- **SC-005**: [Security/privacy outcome when applicable.]
 
 ## Assumptions
 
-<!--
-  ACTION REQUIRED: The content in this section represents placeholders.
-  Fill them out with the right assumptions based on reasonable defaults
-  chosen when the feature description did not specify certain details.
--->
+- Mirage targets iOS 26.0+ and uses Swift, SwiftUI, and Swift 6 strict concurrency.
+- Final project browsing, target inspection, diagnostics, building, testing, and
+  launch verification use the Hermes-configured Xcode MCP server exclusively.
+- [Feature-specific assumption.]
 
-- [Assumption about target users, e.g., "Users have stable internet connectivity"]
-- [Assumption about scope boundaries, e.g., "Mobile support is out of scope for v1"]
-- [Assumption about data/environment, e.g., "Existing authentication system will be reused"]
-- [Dependency on existing system/service, e.g., "Requires access to the existing user profile API"]
+## Out of Scope
+
+- [Explicitly excluded behavior, platform, data, model, or integration.]

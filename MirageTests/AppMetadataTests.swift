@@ -1,5 +1,5 @@
 import XCTest
-@testable import Mirage
+@testable import MirageApp
 
 final class AppMetadataTests: XCTestCase {
     func testScaffoldMetadataIdentifiesMirage() {

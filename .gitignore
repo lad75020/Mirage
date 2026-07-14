@@ -9,9 +9,17 @@ xcuserdata/
 # Swift Package Manager
 .build/
 .swiftpm/
+Packages/
+
+# Local AI model assets
+*.gguf
+*.safetensors
+MirageModels/
 
 # macOS
 .DS_Store
 
 # Local tools
 .hermes/
+/.specify
+/.specify

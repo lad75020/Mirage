@@ -4,110 +4,150 @@
 
 **Input**: Feature specification from `/specs/[###-feature-name]/spec.md`
 
-**Note**: This template is filled in by the `/speckit-plan` command. See `.specify/templates/plan-template.md` for the execution workflow.
-
 ## Summary
 
-[Extract from feature spec: primary requirement + technical approach from research]
+[Summarize the user value, primary requirement, and selected technical approach.]
 
 ## Technical Context
 
-<!--
-  ACTION REQUIRED: Replace the content in this section with the technical details
-  for the project. The structure here is presented in advisory capacity to guide
-  the iteration process.
--->
+**Language/Version**: Swift 6.x with strict concurrency checking
 
-**Language/Version**: [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS CLARIFICATION]
+**UI Framework**: SwiftUI on iOS 26.0+
 
-**Primary Dependencies**: [e.g., FastAPI, UIKit, LLVM or NEEDS CLARIFICATION]
+**Apple Frameworks**: [List native frameworks, including Foundation Models,
+Core ML, Vision, Natural Language, or none]
 
-**Storage**: [if applicable, e.g., PostgreSQL, CoreData, files or N/A]
+**Third-Party Dependencies**: [None preferred; list and justify each dependency]
 
-**Testing**: [e.g., pytest, XCTest, cargo test or NEEDS CLARIFICATION]
+**Storage**: [SwiftData, Core Data, Keychain, protected files, UserDefaults for
+non-sensitive settings, or none]
 
-**Target Platform**: [e.g., Linux server, iOS 15+, WASM or NEEDS CLARIFICATION]
+**Testing**: XCTest and/or Swift Testing; XCUITest for critical journeys
 
-**Project Type**: [e.g., library/cli/web-service/mobile-app/compiler/desktop-app or NEEDS CLARIFICATION]
+**Target Platform**: iOS 26.0+ on iPhone and iPad unless the spec narrows scope
 
-**Performance Goals**: [domain-specific, e.g., 1000 req/s, 10k lines/sec, 60 fps or NEEDS CLARIFICATION]
+**Project Type**: Native iOS application
 
-**Constraints**: [domain-specific, e.g., <200ms p95, <100MB memory, offline-capable or NEEDS CLARIFICATION]
+**Performance Goals**: [Launch, interaction, inference, memory, energy, and
+thermal targets relevant to this feature]
 
-**Scale/Scope**: [domain-specific, e.g., 10k users, 1M LOC, 50 screens or NEEDS CLARIFICATION]
+**AI/ML Strategy**: [No AI, Foundation Models, Core ML, MLX Swift, or llama.cpp;
+include framework-selection rationale]
+
+**Privacy/Security**: [Data inventory, trust boundaries, storage, transport,
+authorization, retention, deletion, and MASVS controls]
+
+**Scale/Scope**: [Screens, data volume, model size, context budget, and supported
+device classes]
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+*GATE: Every item MUST pass before Phase 0 research and MUST be re-checked after
+Phase 1 design.*
 
-[Gates determined based on constitution file]
+- [ ] Uses Swift, SwiftUI, Swift 6 strict concurrency, and iOS 26.0+.
+- [ ] Uses native frameworks first and justifies every dependency and abstraction.
+- [ ] Defines actor/MainActor isolation, Sendable boundaries, cancellation, and
+      typed error handling.
+- [ ] For AI: selects the smallest suitable on-device framework; checks device,
+      model, asset, and locale availability; defines fallback UI; bounds tokens,
+      memory, latency, and energy; and versions prompts/models/evaluations.
+- [ ] For prompts/tools: separates trusted instructions from untrusted content,
+      validates structured output, allowlists tools, and tests injection, misuse,
+      bias, refusals, false positives, and unsafe actions.
+- [ ] Defines data minimization, Keychain/Data Protection use, ATS, authorization,
+      logging redaction, retention/deletion, and relevant OWASP MASVS/MASTG tests.
+- [ ] Includes mandatory unit/integration/UI/evaluation tests plus accessibility,
+      degraded-state, performance, and physical-device validation as applicable.
+- [ ] Final project browsing, membership inspection, diagnostics, builds, tests,
+      and launch verification use the Hermes-configured Xcode MCP server only.
 
 ## Project Structure
 
-### Documentation (this feature)
+### Documentation for This Feature
 
 ```text
 specs/[###-feature]/
-├── plan.md              # This file (/speckit-plan command output)
-├── research.md          # Phase 0 output (/speckit-plan command)
-├── data-model.md        # Phase 1 output (/speckit-plan command)
-├── quickstart.md        # Phase 1 output (/speckit-plan command)
-├── contracts/           # Phase 1 output (/speckit-plan command)
-└── tasks.md             # Phase 2 output (/speckit-tasks command - NOT created by /speckit-plan)
+├── spec.md
+├── plan.md
+├── research.md
+├── data-model.md
+├── quickstart.md
+├── contracts/
+└── tasks.md
 ```
 
-### Source Code (repository root)
-<!--
-  ACTION REQUIRED: Replace the placeholder tree below with the concrete layout
-  for this feature. Delete unused options and expand the chosen structure with
-  real paths (e.g., apps/admin, packages/something). The delivered plan must
-  not include Option labels.
--->
+### Mirage Source Layout
 
 ```text
-# [REMOVE IF UNUSED] Option 1: Single project (DEFAULT)
-src/
-├── models/
-├── services/
-├── cli/
-└── lib/
+Mirage/
+├── App/
+├── Features/
+│   └── [Feature]/
+│       ├── Models/
+│       ├── Services/
+│       ├── ViewModels/
+│       └── Views/
+├── AI/
+│   ├── Models/
+│   ├── Prompts/
+│   ├── Tools/
+│   └── Evaluation/
+├── Security/
+├── Shared/
+└── Resources/
 
-tests/
-├── contract/
-├── integration/
-└── unit/
+MirageTests/
+├── Unit/
+├── Integration/
+├── Security/
+└── AIEvaluation/
 
-# [REMOVE IF UNUSED] Option 2: Web application (when "frontend" + "backend" detected)
-backend/
-├── src/
-│   ├── models/
-│   ├── services/
-│   └── api/
-└── tests/
-
-frontend/
-├── src/
-│   ├── components/
-│   ├── pages/
-│   └── services/
-└── tests/
-
-# [REMOVE IF UNUSED] Option 3: Mobile + API (when "iOS/Android" detected)
-api/
-└── [same as backend above]
-
-ios/ or android/
-└── [platform-specific structure: feature modules, UI flows, platform tests]
+MirageUITests/
+└── Journeys/
 ```
 
-**Structure Decision**: [Document the selected structure and reference the real
-directories captured above]
+Remove unused directories; do not create empty architectural layers.
+
+**Structure Decision**: [Describe the minimal concrete paths used by this feature
+and why each boundary is required.]
+
+## AI, Prompt, and Security Design
+
+**Availability and Fallback**: [Eligibility checks, user-visible states, and
+non-AI/alternate behavior]
+
+**Prompt Trust Boundaries**: [Trusted instructions, untrusted inputs, retrieval,
+tool results, and output validation]
+
+**Tool Authorization**: [Allowed capabilities, typed arguments, confirmation,
+least privilege, and failure handling]
+
+**Data Lifecycle**: [Collection, processing location, storage, transport,
+retention, deletion, and logging]
+
+**Threat Model and Runtime Assessment**: [Misuse cases, MASVS/MASTG controls, and
+authorized Objection/Frida checks]
+
+**Evaluation Plan**: [Quality thresholds, deterministic fixtures, regressions,
+safety, bias, injection, fallback, accessibility, and physical-device tests]
+
+## Xcode MCP Verification Plan
+
+**Affected Schemes**: [List schemes]
+
+**Destinations**: [Simulator and eligible physical devices]
+
+**Required Evidence**: [Affected-file browse, target membership, diagnostics,
+build, test, launch, and device-specific AI/performance results]
+
+**Blocker Policy**: If the Hermes-configured Xcode MCP server is unavailable or
+fails, stop and report the blocker. Do not substitute command-line build tools.
 
 ## Complexity Tracking
 
-> **Fill ONLY if Constitution Check has violations that must be justified**
+> Fill only when the Constitution Check has a justified violation.
 
-| Violation | Why Needed | Simpler Alternative Rejected Because |
-|-----------|------------|-------------------------------------|
-| [e.g., 4th project] | [current need] | [why 3 projects insufficient] |
-| [e.g., Repository pattern] | [specific problem] | [why direct DB access insufficient] |
+| Violation | Why Required | Simpler Compliant Alternative Rejected Because | Owner | Expiry |
+|---|---|---|---|---|
+| [Describe] | [Need] | [Reason] | [Owner] | [Date] |

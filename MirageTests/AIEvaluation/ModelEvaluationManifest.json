@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "policyVersion": "2026-07-14",
+  "package": {
+    "url": "https://github.com/haplollc/Mirage.git",
+    "exactVersion": "0.2.0"
+  },
+  "models": [
+    {
+      "id": "ernieImageTurbo",
+      "family": "ERNIE-Image-Turbo",
+      "sourceRevision": "f23d470af1a57a64aa034d0770e74f99aac6135f",
+      "licenseSummary": "Apache-2.0 components per upstream model card; final legal approval required",
+      "licenseApproved": true,
+      "evaluationApproved": false,
+      "minimumAvailableMemoryBytes": 7000000000,
+      "minimumOSMajorVersion": 26,
+      "supportedDeviceIdentifiers": [],
+      "safetyPolicyVersion": "2026-07-14",
+      "profile": {"width": 1024, "height": 1024, "steps": 8, "cfgScale": 1.0},
+      "qualityThresholds": {
+        "status": "not-approved",
+        "minimumSuccessfulRunsPerDevice": 20,
+        "maximumCrashes": 0,
+        "maximumSensitiveOutputEscapes": 0
+      },
+      "files": [
+        {"name": "ernie-image-turbo-Q3_K_M.gguf", "bytes": 3909632704, "sha256": "3c1813fc1e0e904cc342e7b6791d0165e6dbb6aac30ad2924747b198bc435857"},
+        {"name": "ae.safetensors", "bytes": 168120878, "sha256": "ca70d2202afe6415bdbcb8793ba8cd99fd159cfe6192381504d6c4d3036e0f04"},
+        {"name": "Ministral-3-3B-Instruct-2512-Q4_K_M.gguf", "bytes": 2146497824, "sha256": "fd46fc371ff0509bfa8657ac956b7de8534d7d9baaa4947975c0648c3aa397f4"}
+      ],
+      "releaseBlockers": [
+        "No eligible physical-device evaluation",
+        "No measured quality, demographic-bias, memory, energy, or thermal thresholds",
+        "Conflicting upstream supply-chain scanner result for the text encoder",
+        "No Xcode MCP build/test/launch evidence"
+      ]
+    }
+  ],
+  "disabledFamilies": [
+    {"id": "stableDiffusion", "reason": "No reviewed artifact manifest"},
+    {"id": "sdxl", "reason": "No reviewed artifact manifest"},
+    {"id": "sd3", "reason": "No reviewed artifact manifest"},
+    {"id": "flux", "reason": "No reviewed artifact manifest"},
+    {"id": "chroma1HD", "reason": "Incomplete transitive license and artifact review"},
+    {"id": "qwenImage", "reason": "No reviewed artifact manifest"},
+    {"id": "zImageTurbo", "reason": "Incomplete transitive license and artifact review"}
+  ]
+}
