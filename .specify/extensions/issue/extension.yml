@@ -1,0 +1,28 @@
+schema_version: "1.0"
+
+extension:
+  id: "issue"
+  name: "Spec Issue"
+  version: "1.0.0"
+  description: "An extension to create and manage issues during the implementation process."
+  author: "Aaron Sun"
+  repository: "https://github.com/aaronrsun/spec-kit-issue"
+  license: "MIT"
+
+requires:
+  speckit_version: ">=0.1.0"
+
+provides:
+  commands:
+    - name: "speckit.issue.import"
+      file: "commands/import.md"
+      description: "Import a GitHub Issue and generate spec.md"
+    - name: "speckit.issue.link"
+      file: "commands/link.md"
+      description: "Link a spec artifact to a GitHub Issue for bidirectional traceability"
+    - name: "speckit.issue.sync"
+      file: "commands/sync.md"
+      description: "Sync spec.md with updates from the linked source GitHub Issue"
+
+tags:
+  - "issue"

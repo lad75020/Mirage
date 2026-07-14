@@ -1,0 +1,66 @@
+{
+  "schema_version": "1.0",
+  "extensions": {
+    "agent-context": {
+      "version": "1.0.0",
+      "source": "local",
+      "manifest_hash": "sha256:9a1dc02d2d0139bb03860392ecacef79183be2c442feda2f9ccaa4e5907b1e47",
+      "enabled": true,
+      "priority": 10,
+      "registered_commands": {
+        "hermes": [
+          "speckit.agent-context.update"
+        ]
+      },
+      "registered_skills": [],
+      "installed_at": "2026-07-14T00:40:37.359004+00:00"
+    },
+    "fixit": {
+      "version": "1.0.0",
+      "source": "local",
+      "manifest_hash": "sha256:cd7575705b5b8ad6c421840e3bd7dcf3260523b7f7709500bb16afef03515a30",
+      "enabled": true,
+      "priority": 10,
+      "registered_commands": {
+        "hermes": [
+          "speckit.fixit.run"
+        ]
+      },
+      "registered_skills": [],
+      "installed_at": "2026-07-14T00:40:41.746252+00:00"
+    },
+    "issue": {
+      "version": "1.0.0",
+      "source": "local",
+      "manifest_hash": "sha256:33da4b7ddf4cf77a57aa4822738f261c81033189cacea2934051ad964d451fea",
+      "enabled": true,
+      "priority": 10,
+      "registered_commands": {
+        "hermes": [
+          "speckit.issue.import",
+          "speckit.issue.link",
+          "speckit.issue.sync"
+        ]
+      },
+      "registered_skills": [],
+      "installed_at": "2026-07-14T00:40:41.848239+00:00"
+    },
+    "refine": {
+      "version": "1.0.0",
+      "source": "local",
+      "manifest_hash": "sha256:f81d942a057a69e00d223e0c2154de0e1040b33f80f9acfc1a15a6e3762ae22b",
+      "enabled": true,
+      "priority": 10,
+      "registered_commands": {
+        "hermes": [
+          "speckit.refine.update",
+          "speckit.refine.propagate",
+          "speckit.refine.diff",
+          "speckit.refine.status"
+        ]
+      },
+      "registered_skills": [],
+      "installed_at": "2026-07-14T00:40:42.442552+00:00"
+    }
+  }
+}
