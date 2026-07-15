@@ -4,7 +4,14 @@ public enum ImageGenerationState: Equatable, Sendable {
     case idle
     case checkingModels
     case ready
+    case resolvingDownload(ModelRepositoryReference)
+    case downloadingModel(ModelRepositoryReference, ModelDownloadProgress)
+    case validatingDownload(ModelRepositoryReference)
+    case downloadCancelled(ModelRepositoryReference)
     case loadingModel(requestID: UUID, previousResult: GeneratedImage?)
+    case modelLoaded(ModelRepositoryReference)
+    case modelUnloaded(ModelRepositoryReference)
+    case filesTampered(ModelRepositoryReference)
     case generating(requestID: UUID, progress: GenerationProgress, previousResult: GeneratedImage?)
     case reviewingSafety(requestID: UUID, previousResult: GeneratedImage?)
     case success(GeneratedImage)
@@ -13,7 +20,7 @@ public enum ImageGenerationState: Equatable, Sendable {
 
     public var isBusy: Bool {
         switch self {
-        case .loadingModel, .generating, .reviewingSafety:
+        case .resolvingDownload, .downloadingModel, .validatingDownload, .loadingModel, .generating, .reviewingSafety:
             true
         default:
             false
@@ -45,7 +52,19 @@ public enum ImageGenerationState: Equatable, Sendable {
         case .idle: "Preparing…"
         case .checkingModels: "Checking models…"
         case .ready: "Ready"
+        case .resolvingDownload(let reference): "Resolving \(reference.id)…"
+        case .downloadingModel(_, let progress):
+            if let fraction = progress.fractionCompleted {
+                "Downloading \(Int(fraction * 100))%…"
+            } else {
+                "Downloading model…"
+            }
+        case .validatingDownload: "Validating model…"
+        case .downloadCancelled: "Download cancelled"
         case .loadingModel: "Loading model…"
+        case .modelLoaded: "Model loaded"
+        case .modelUnloaded: "Model unloaded"
+        case .filesTampered: "Model files changed. Refresh or download again."
         case .generating(_, let progress, _):
             "Generating step \(progress.completedStep) of \(progress.totalSteps)…"
         case .reviewingSafety: "Reviewing image…"

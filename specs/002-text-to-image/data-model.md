@@ -3,228 +3,206 @@
 **Feature**: `002-text-to-image`
 **Date**: 2026-07-14
 
-The feature has no database. All user generation data is session-scoped. Model assets are app-managed files described by immutable catalog metadata.
+Mirage has no database. Prompt and generated-image data are session-scoped. Downloaded model snapshots and non-sensitive source/integrity metadata persist in the app Documents container so the user can inspect them in Files.
 
-## 1. ModelDescriptor
+## 1. ModelRepositoryReference
 
-Represents one fixed model-family option and the exact validated local bundle needed to enable it.
+Canonical public Hugging Face repository identity.
 
-| Field | Type | Required | Validation / meaning |
-|---|---|---:|---|
-| `id` | Stable string enum | Yes | One of the eight fixed catalog IDs; never derived from a path. |
-| `displayName` | String | Yes | Localized family name shown to the user. |
-| `architecture` | String | Yes | Informational architecture from upstream README. |
-| `exampleFilename` | String | Yes | Informational README example; not trusted for file resolution. |
-| `packageVersion` | Semantic version | Yes | Must equal reviewed exact version `0.2.0` for this plan. |
-| `diffusionFilename` | Safe relative filename | Conditional | Required before the entry can be available. No separators or traversal. |
-| `vaeFilename` | Safe relative filename | No | Required only for that validated family/profile. |
-| `textEncoderFilename` | Safe relative filename | No | Required only for that validated family/profile. |
-| `expectedFileHashes` | Map of filename to SHA-256 | Conditional | Required for every enabled file. |
-| `bundleBytes` | 64-bit integer | Conditional | Positive measured total of required files. |
-| `activationHeadroomBytes` | 64-bit integer | Conditional | Positive approved working-memory reserve. |
-| `supportedDeviceClasses` | Set | Conditional | Explicit physical-device allowlist from evaluation evidence. |
-| `generationProfile` | GenerationProfile | Conditional | Required before selection is enabled. |
-| `licenseStatus` | LicenseStatus | Yes | Must be `approved` before selection is enabled. |
-| `safetyPolicyVersion` | String | Conditional | Required before selection is enabled. |
-| `negativePrompt` | String | No | Trusted, versioned SFW negative prompt; never user-controlled in this feature. |
-| `evaluationVersion` | String | Conditional | Links to passing quality/safety/resource evidence. |
-
-### Fixed IDs and source order
-
-1. `stable-diffusion`
-2. `sdxl`
-3. `sd3`
-4. `flux1`
-5. `chroma1-hd`
-6. `qwen-image`
-7. `ernie-image-turbo`
-8. `z-image-turbo`
-
-### Validation rules
-
-A descriptor is **selectable** only when:
-
-- every required filename is present and path-safe;
-- each file exists under its own model directory and matches its approved hash;
-- the package version, generation profile, license, safety policy, device class, and evaluation version are approved;
-- current available memory is at least the greater of the package preflight rule and the descriptor's measured total plus activation headroom;
-- no generation or engine transition is active.
-
-## 2. GenerationProfile
-
-Immutable model-specific inference settings approved through physical-device evaluation.
-
-| Field | Type | Validation |
+| Field | Type | Validation / meaning |
 |---|---|---|
-| `width` | Integer | Positive multiple of 8. |
-| `height` | Integer | Positive multiple of 8. |
-| `steps` | Integer | Positive and within model-approved range. |
-| `cfgScale` | Float | Finite and within model-approved range. |
-| `seedPolicy` | Enum | `random` for this feature; deterministic seeds are evaluation-only. |
-| `maximumPromptCharacters` | Integer | Exactly 1,000 for the UI contract. |
+| `owner` | String | 1...96 characters; letters, numbers, `.`, `_`, `-`; no empty, leading/trailing `.`, or `..`. |
+| `repository` | String | Same component validation as `owner`. |
+| `id` | String | `owner/repository`; used for display and metadata, not as a filesystem path. |
+| `apiURLWithBlobs` | URL | `https://huggingface.co/api/models/<owner>/<repository>?blobs=true`. |
 
-Known candidate profiles requiring final evidence:
+Accepted user input is either `owner/repository` or `https://huggingface.co/owner/repository`. Credentials, query strings, fragments, ports, non-HTTPS URLs, non-Hugging-Face hosts, encoded separators, private repositories, and gated repositories are rejected.
 
-- ERNIE-Image-Turbo: 1024 × 1024, 8 steps, CFG 1.0.
-- Z-Image-Turbo: 1024 × 1024, 9 steps, CFG 1.0.
-- Chroma1-HD: 1024 × 1024, 28 steps, CFG 4.0, unavailable on iPhone by default.
+## 2. ResolvedModelRevision
 
-Other families remain unavailable until a complete profile is approved.
+Immutable remote revision resolved before download confirmation.
 
-## 3. ModelAvailability
+| Field | Type | Validation / meaning |
+|---|---|---|
+| `reference` | ModelRepositoryReference | Canonical public reference. |
+| `commitSHA` | String | Exactly 40 hex characters. Branch names such as `main` are not accepted as resolved revisions. |
+| `license` | String? | Required by downloader before confirmation; normalized lowercase. |
+| `totalSizeBytes` | Int64? | Sum of accepted `.gguf` and `.safetensors` files when metadata supplies sizes. |
 
-Computed value describing whether a catalog entry can be selected now.
+## 3. ModelDownloadFile
+
+One downloadable model asset selected from repository metadata.
+
+| Field | Type | Validation / meaning |
+|---|---|---|
+| `path` | Safe relative path | No absolute path, traversal, empty component, backslash, encoded separator, or unsafe extension. |
+| `sizeBytes` | Int64 | Positive and no more than 16 GiB. |
+| `sha256` | String | Required 64-character LFS SHA-256. |
+| `downloadURL` | URL | Immutable revision URL under an official Hugging Face host. |
+
+Only `.gguf` and `.safetensors` files are selected. Metadata is capped at 2 MiB. A plan may include at most 24 files and at most 24 GiB total.
+
+## 4. ModelDownloadPlan and State
+
+| Field | Type | Validation / meaning |
+|---|---|---|
+| `revision` | ResolvedModelRevision | Public, ungated, immutable repository revision. |
+| `files` | [ModelDownloadFile] | Complete expected file list with sizes and hashes. |
+| `expectedSizeBytes` | Int64 | Sum of file sizes; used for confirmation, storage preflight, and progress. |
+
+Download state:
+
+```text
+notDownloaded
+resolving(reference)
+awaitingConfirmation(revision, sizeBytes, license)
+downloading(reference, progress)
+validating(reference)
+downloaded(snapshot)
+cancelled(reference)
+failed(reference, reason)
+```
+
+Users must explicitly confirm size/license information before transfer. Cancellation and failure clean staging data and never activate partial files.
+
+## 5. LocalModelSnapshot
+
+Promoted snapshot in Files-visible storage.
+
+| Field | Type | Validation / meaning |
+|---|---|---|
+| `reference` | ModelRepositoryReference | Source repository. |
+| `commitSHA` | String | Immutable revision actually downloaded. |
+| `folderName` | String | Stable safe slug plus digest, generated from repository identity. |
+| `folderURL` | URL | Under `Documents/Mirage Models`. |
+| `files` | [ModelDownloadFile] | Exact promoted file list. |
+| `license` | String? | Source license recorded at download time. |
+| `compatibility` | ModelCompatibility | Separate from download completion. |
+
+The store writes `.mirage-snapshot.json` in the folder. Refresh validates metadata, file count, safe paths, byte counts, SHA-256, case collisions, executable flags, symlinks, hidden files, and unexpected files. Files tampering returns an incompatible state instead of loading stale data.
+
+## 6. ModelDescriptor
+
+Reviewed generation descriptor for a featured repository.
+
+| Field | Type | Validation / meaning |
+|---|---|---|
+| `id` | ModelID | One of `zImageTurbo`, `ernieImageTurbo`, or `chroma1HD` for current featured descriptors. Historical fixed-family IDs remain in code only for compatibility with superseded tests/tasks. |
+| `repository` | ModelRepositoryReference | Must match one featured source. |
+| `reviewedRevisionSHA` | String | Exact reviewed commit SHA. |
+| `familyName` | String | User-facing model name. |
+| `summary` | String | Short user-facing description. |
+| `packageVersion` | String | Must be `0.2.0`. |
+| `requirements` | [ModelFileRequirement] | Required files, byte counts, and SHA-256 hashes. |
+| `profile` | GenerationProfile | Width, height, steps, CFG scale, and optional trusted negative prompt. |
+| `minimumAvailableMemoryBytes` | UInt64 | Conservative preflight memory threshold. |
+| `licenseApproved` | Bool | True only after license metadata is accepted for planning. |
+| `evaluationApproved` | Bool | Runtime compatibility gate for an explicitly enabled reviewed artifact set. Runtime enablement does not establish release approval. |
+| `safetyPolicyVersion` | String | Must match current prompt/output safety policy. |
+
+Featured descriptors currently use:
+
+| ID | Repository | Commit | Profile | Evaluation |
+|---|---|---|---|---|
+| `zImageTurbo` | `jc-builds/Z-Image-Turbo-iOS` | `97ae389b962ee927d83c1911be743c8d82c11674` | 1024 x 1024, 9 steps, CFG 1.0 | true |
+| `ernieImageTurbo` | `jc-builds/ERNIE-Image-Turbo-iOS` | `f23d470af1a57a64aa034d0770e74f99aac6135f` | 1024 x 1024, 8 steps, CFG 1.0 | false |
+| `chroma1HD` | `jc-builds/Chroma1-HD-iOS` | `722a672dca0d2ec5ff39dea561ae0df62bf49995` | 1024 x 1024, 28 steps, CFG 4.0 | false |
+
+The exact reviewed Z-Image snapshot is runtime-enabled. ERNIE, Chroma, and custom snapshots remain fail-closed; Z-Image still requires physical-device and release evidence.
+
+## 7. ModelCompatibility and Availability
+
+```text
+compatible(profile)
+incompatible(reason)
+unknownCustomRepository
+```
+
+Custom snapshots default to `unknownCustomRepository` and are not selectable. Featured snapshots become compatible only when source, commit, files, byte counts, SHA-256, license, safety policy, profile, OS, device, and memory gates all pass.
+
+`ModelAvailability` reports current selection readiness:
 
 ```text
 checking
 available
-unavailable(reason)
+configurationIncomplete
+missingFiles(names)
+integrityFailed(name)
+licenseNotApproved
+evaluationRequired
+unsupportedDevice
+insufficientMemory(required, available)
+protectedDataUnavailable
+invalidPath
+incompatibleAssets
 ```
 
-Typed unavailable reasons:
+User-facing text is concise and redacted. It does not expose local paths, hashes, native errors, prompts, credentials, or hidden safety rules.
 
-- `missingManifest`
-- `missingFiles`
-- `integrityFailure`
-- `licenseNotApproved`
-- `deviceUnsupported`
-- `insufficientMemory`
-- `profileNotValidated`
-- `safetyPolicyMissing`
-- `engineBusy`
-- `protectedDataUnavailable`
+## 8. GenerationRequestSnapshot
 
-The user receives concise localized text. Internal paths, hashes, native diagnostics, and hidden policy details are not exposed.
+Validated immutable snapshot created when SEND is accepted.
 
-## 4. GenerationInput
-
-Validated snapshot created when SEND is accepted.
-
-| Field | Type | Validation |
+| Field | Type | Validation / meaning |
 |---|---|---|
-| `requestID` | UUID | New for each accepted SEND. |
-| `modelID` | Model ID | Must reference the currently selected and available descriptor. |
-| `prompt` | String | Trimmed; 1–1,000 visible characters; passes prompt safety policy. |
-| `profile` | GenerationProfile | Copied from approved descriptor. |
-| `negativePrompt` | String? | Trusted descriptor value only. |
+| `id` | UUID | New for each accepted attempt. |
+| `prompt` | String | Trimmed, 1...1000 visible characters, prompt-safety approved. |
+| `modelID` | ModelID | Must match selected descriptor. |
+| `profile` | GenerationProfile | Copied from descriptor. |
+| `createdAt` | Date | Request timestamp. |
 
-The prompt is never used in paths, logs, analytics, configuration, or Photo metadata.
-
-## 5. GenerationProgress
-
-Immutable `Sendable` value emitted from the inference boundary.
-
-| Field | Type | Validation |
-|---|---|---|
-| `requestID` | UUID | Must match the active request. |
-| `phase` | Enum | `resolving`, `loadingModel`, `generating`, `validating`, `completed`. |
-| `step` | Integer? | 1-indexed when package callback begins. |
-| `totalSteps` | Integer? | Positive and equals the active profile's steps. |
-| `elapsedSincePreviousStep` | Duration? | Nonnegative; first value includes warm-up. |
-| `estimatedRemaining` | Duration? | Published only after enough stable samples; never guaranteed. |
-
-Stale request IDs are ignored. Accessibility announcements are throttled independently of visual updates.
-
-## 6. GeneratedImage
-
-Validated session result exposed to UI and save flow.
-
-| Field | Type | Validation |
-|---|---|---|
-| `requestID` | UUID | Matches its generation input. |
-| `modelID` | Model ID | Informational UI state; not embedded in the saved file. |
-| `pngData` | Data | Nonempty, decodes as one RGB/RGBA image, contains no prompt/model metadata. |
-| `pixelWidth` | Integer | Positive and matches approved output. |
-| `pixelHeight` | Integer | Positive and matches approved output. |
-| `safetyResult` | SafetyResult | Must be `allowed` before display or save. |
-
-A new allowed result replaces the previous result. Failure/refusal preserves the previous result. The result is not persisted by Mirage.
-
-## 7. SafetyResult
-
-```text
-allowed(policyVersion)
-refused(reasonCategory)
-reviewFailed(recoverableMessage)
-```
-
-Reason categories are deliberately coarse and user-safe. Hidden rules, prompt-policy internals, model diagnostics, and sensitive detections are not persisted or displayed.
-
-## 8. SaveOutcome
-
-State of one explicit Photo Library save attempt.
-
-```text
-idle
-requestingAuthorization
-saving
-saved
-permissionDenied
-permissionRestricted
-failed(recoverableMessage)
-```
-
-Save accepts only a current `GeneratedImage` whose safety result is allowed. It requests add-only authorization and creates exactly one asset per accepted tap.
+The prompt is never used in URLs, folder names, logs, fixtures, evidence, Photo metadata, or model metadata.
 
 ## 9. ImageGenerationState
 
-Single source of truth for the page.
+Single source of truth for the page:
 
 ```text
 idle
 checkingModels
-ready(selectedModelID, previousImage?)
-loadingModel(requestID, selectedModelID, previousImage?)
-generating(requestID, progress, previousImage?)
-validating(requestID, previousImage?)
-showingResult(image, saveOutcome)
-refused(message, previousImage?)
-failed(message, previousImage?)
-noAvailableModels(reasonSummary)
+ready
+resolvingDownload(reference)
+downloadingModel(reference, progress)
+validatingDownload(reference)
+downloadCancelled(reference)
+loadingModel(requestID, previousResult)
+modelLoaded(reference)
+modelUnloaded(reference)
+filesTampered(reference)
+generating(requestID, progress, previousResult)
+reviewingSafety(requestID, previousResult)
+success(image)
+refused(message, previousResult)
+failed(failure, previousResult)
 ```
 
-### State transitions
+Listing and downloading never load native weights. The current implementation begins native load as part of the SEND attempt for the explicitly selected compatible model, serializes the attempt in the inference actor, and awaits unload before returning. Logical selection remains separate from native engine lifetime.
+
+## 10. GeneratedImage and SaveState
+
+`GeneratedImage` contains request ID, model ID, immutable PNG data, and pixel dimensions. It remains in memory unless the user explicitly saves it.
+
+`SaveState`:
 
 ```text
-idle → checkingModels → ready | noAvailableModels
-ready → loadingModel                    on valid SEND
-loadingModel → generating               engine ready
-loadingModel → failed                   load/preflight failure
-generating → validating                 package returns CGImage
-generating → failed                     native generation failure
-validating → showingResult              structural + safety checks pass
-validating → refused                    safety policy blocks output
-validating → failed                     invalid image/review failure
-showingResult → loadingModel            next valid SEND; old image retained
-showingResult → requestingAuthorization explicit Save
-requestingAuthorization → saving        add-only permission granted
-requestingAuthorization → permissionDenied | permissionRestricted
-saving → saved | failed
+hidden
+ready
+requestingPermission
+saving
+saved
+denied
+failed
 ```
 
-Model selection and prompt edits are allowed only when they cannot create ambiguity with an active request. The package exposes no reliable native cancel operation, so UI state cannot transition back to ready until the native call resolves or the process is interrupted.
+Saving uses Photo Library add-only authorization and writes one metadata-free PNG per accepted Save action.
 
-## Relationships
+## Retention and Sensitivity
 
-```text
-ModelDescriptor 1 ── 1 GenerationProfile
-ModelDescriptor 1 ── 0...* local model files
-GenerationInput * ── 1 ModelDescriptor
-GenerationProgress * ── 1 GenerationInput
-GeneratedImage 1 ── 1 GenerationInput
-GeneratedImage 1 ── 1 SafetyResult
-GeneratedImage 1 ── 0...* explicit SaveOutcome attempts
-ImageGenerationState 1 ── 0...1 active GenerationInput
-ImageGenerationState 1 ── 0...1 displayed GeneratedImage
-```
-
-## Retention and sensitivity
-
-| Data | Sensitivity | Persistence | Logging |
+| Data | Sensitivity | Persistence | Transport |
 |---|---|---|---|
-| Prompt | Private user content | Memory only | Never |
-| Generated image | Private user content | Memory; Photos only on explicit Save | Never |
-| Model selection | Low sensitivity | Session only | No analytics |
-| Model files/hashes | App asset | Application Support; excluded from backup | Safe status only |
-| Native errors | Potentially sensitive/path-bearing | Not persisted | Redacted category only |
-| Photo permission | Privacy state | System-owned; app reads current status | Never |
+| Prompt | Private user content | Memory only | Never sent for download or inference. |
+| Generated image | Private user content | Memory; Photos only after explicit Save | Never sent by Mirage. |
+| Featured/custom repository reference | User-selected model source | Download state/session; snapshot metadata after promotion | Sent only to public Hugging Face API/download hosts. |
+| Downloaded model files | Third-party assets | `Documents/Mirage Models`; user-visible in Files | Downloaded over HTTPS from official hosts. |
+| Snapshot metadata | Non-sensitive source/integrity data | `.mirage-snapshot.json` in model folder | Not uploaded. |
+| Credentials/tokens | Out of scope | Never stored | Never accepted. |

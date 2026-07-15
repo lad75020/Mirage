@@ -60,4 +60,18 @@ final class ImageGenerationStateTests: XCTestCase {
         XCTAssertFalse(ImageGenerationState.success(image).isBusy)
         XCTAssertEqual(ImageGenerationState.success(image).currentImage, image)
     }
+
+    func testDownloadValidationLoadingTeardownCancellationAndTamperingStates() throws {
+        let reference = try ModelRepositoryReference("jc-builds/Z-Image-Turbo-iOS")
+        let progress = ModelDownloadProgress(completedBytes: 25, totalBytes: 100)
+
+        XCTAssertTrue(ImageGenerationState.resolvingDownload(reference).isBusy)
+        XCTAssertTrue(ImageGenerationState.downloadingModel(reference, progress).isBusy)
+        XCTAssertEqual(ImageGenerationState.downloadingModel(reference, progress).statusText, "Downloading 25%…")
+        XCTAssertTrue(ImageGenerationState.validatingDownload(reference).isBusy)
+        XCTAssertFalse(ImageGenerationState.modelLoaded(reference).isBusy)
+        XCTAssertFalse(ImageGenerationState.modelUnloaded(reference).isBusy)
+        XCTAssertFalse(ImageGenerationState.downloadCancelled(reference).isBusy)
+        XCTAssertFalse(ImageGenerationState.filesTampered(reference).isBusy)
+    }
 }

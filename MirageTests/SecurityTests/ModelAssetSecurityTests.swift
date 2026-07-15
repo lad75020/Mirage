@@ -19,6 +19,30 @@ final class ModelAssetSecurityTests: XCTestCase {
         }
     }
 
+    func testMaliciousReferencesRedirectsPartialActivationAndGenerationDataExclusion() throws {
+        XCTAssertThrowsError(try ModelRepositoryReference("https://evil.example/owner/model"))
+        XCTAssertThrowsError(try ModelRepositoryReference("https://user:secret@huggingface.co/owner/model"))
+        XCTAssertFalse(HuggingFaceModelDownloader.validateRedirect(
+            from: URL(string: "https://huggingface.co/owner/model")!,
+            to: URL(string: "http://huggingface.co/owner/model")!
+        ))
+        XCTAssertFalse(HuggingFaceModelDownloader.validateRedirect(
+            from: URL(string: "https://huggingface.co/owner/model")!,
+            to: URL(string: "https://example.com/owner/model")!
+        ))
+
+        let mirror = Mirror(reflecting: ModelDownloadFile(
+            path: "model.gguf",
+            sizeBytes: 1,
+            sha256: nil,
+            downloadURL: URL(string: "https://huggingface.co/owner/model/resolve/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/model.gguf")!
+        ))
+        let labels = Set(mirror.children.compactMap(\.label))
+        XCTAssertFalse(labels.contains("prompt"))
+        XCTAssertFalse(labels.contains("pngData"))
+        XCTAssertFalse(labels.contains("credential"))
+    }
+
     func testGitIgnoreExcludesCommonModelWeightFormats() throws {
         let root = URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent()

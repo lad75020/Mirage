@@ -18,6 +18,7 @@ final class ImageGenerationViewModelSaveTests: XCTestCase {
         XCTAssertEqual(viewModel.saveState, .hidden)
 
         await viewModel.refreshAvailability()
+        await viewModel.selectModel(descriptor.id)
         viewModel.prompt = "A blue glass bird"
         await viewModel.generate()
         XCTAssertEqual(viewModel.saveState, .ready)
@@ -40,6 +41,7 @@ final class ImageGenerationViewModelSaveTests: XCTestCase {
             photoSaver: photoSaver
         )
         await viewModel.refreshAvailability()
+        await viewModel.selectModel(descriptor.id)
         viewModel.prompt = "A blue glass bird"
         await viewModel.generate()
         let image = viewModel.state.currentImage

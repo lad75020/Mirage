@@ -31,6 +31,25 @@ public protocol ModelAvailabilityProviding: Sendable {
     func resolve(_ descriptor: ModelDescriptor) async throws -> ResolvedModelFiles
 }
 
+public protocol ModelSnapshotStoring: Sendable {
+    var modelRootURL: URL { get }
+    func stagingURL(for reference: ModelRepositoryReference) async throws -> URL
+    func discardStagingURL(_ url: URL) async
+    func validateCanStore(plan: ModelDownloadPlan) async throws
+    func promote(plan: ModelDownloadPlan, from stagingURL: URL) async throws -> LocalModelSnapshot
+    func refreshSnapshots() async -> [LocalModelSnapshot]
+    func availableBytes() async -> Int64
+}
+
+public protocol ModelDownloading: Sendable {
+    func resolve(reference: ModelRepositoryReference) async throws -> ModelDownloadPlan
+    func download(
+        plan: ModelDownloadPlan,
+        to stagingURL: URL,
+        progress: @escaping @Sendable (ModelDownloadProgress) -> Void
+    ) async throws
+}
+
 public protocol ImageGenerating: Sendable {
     func generate(
         request: GenerationRequestSnapshot,

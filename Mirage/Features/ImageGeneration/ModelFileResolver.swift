@@ -32,9 +32,8 @@ public actor ModelFileResolver: ModelAvailabilityProviding {
         deviceProvider: any DeviceCapabilityProviding = SystemDeviceCapabilityProvider(),
         fileManager: FileManager = .default
     ) throws {
-        let baseURL = rootURL ?? fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("Mirage", isDirectory: true)
-            .appendingPathComponent("Models", isDirectory: true)
+        let baseURL = rootURL ?? fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent("Mirage Models", isDirectory: true)
         try fileManager.createDirectory(at: baseURL, withIntermediateDirectories: true)
         var values = URLResourceValues()
         values.isExcludedFromBackup = true
@@ -70,11 +69,6 @@ public actor ModelFileResolver: ModelAvailabilityProviding {
               descriptor.safetyPolicyVersion == PromptSafetyPolicy.version else {
             return .configurationIncomplete
         }
-        guard !descriptor.requirements.isEmpty,
-              descriptor.requirements.allSatisfy({ isValidHash($0.sha256) }) else {
-            return .configurationIncomplete
-        }
-
         let availableMemory = memoryProvider.availableMemoryBytes()
         guard availableMemory >= descriptor.minimumAvailableMemoryBytes else {
             return .insufficientMemory(
@@ -83,9 +77,14 @@ public actor ModelFileResolver: ModelAvailabilityProviding {
             )
         }
 
+        guard !descriptor.requirements.isEmpty,
+              descriptor.requirements.allSatisfy({ isValidHash($0.sha256) }) else {
+            return .configurationIncomplete
+        }
+
         var missingFiles: [String] = []
         for requirement in descriptor.requirements {
-            guard let url = containedURL(for: requirement, modelID: descriptor.id) else {
+            guard let url = containedURL(for: requirement, descriptor: descriptor) else {
                 return .invalidPath
             }
             guard fileManager.fileExists(atPath: url.path) else {
@@ -96,6 +95,11 @@ public actor ModelFileResolver: ModelAvailabilityProviding {
                 return .incompatibleAssets
             }
             do {
+                let resourceValues = try url.resourceValues(forKeys: [.isSymbolicLinkKey, .isExecutableKey])
+                guard resourceValues.isSymbolicLink != true,
+                      resourceValues.isExecutable != true else {
+                    return .incompatibleAssets
+                }
                 let attributes = try fileManager.attributesOfItem(atPath: url.path)
                 if let expected = requirement.expectedByteCount,
                    let actual = attributes[.size] as? NSNumber,
@@ -124,7 +128,7 @@ public actor ModelFileResolver: ModelAvailabilityProviding {
         var vae: URL?
         var textEncoder: URL?
         for requirement in descriptor.requirements {
-            guard let url = containedURL(for: requirement, modelID: descriptor.id) else {
+            guard let url = containedURL(for: requirement, descriptor: descriptor) else {
                 throw ModelResolutionError.invalidPath
             }
             switch requirement.role {
@@ -141,8 +145,16 @@ public actor ModelFileResolver: ModelAvailabilityProviding {
         )
     }
 
-    private func containedURL(for requirement: ModelFileRequirement, modelID: ModelID) -> URL? {
-        let modelRoot = rootURL.appendingPathComponent(modelID.rawValue, isDirectory: true)
+    private func containedURL(for requirement: ModelFileRequirement, descriptor: ModelDescriptor) -> URL? {
+        let components = requirement.fileName.split(separator: "/", omittingEmptySubsequences: false)
+        guard !components.isEmpty,
+              components.allSatisfy({ !$0.isEmpty && $0 != "." && $0 != ".." }),
+              !requirement.fileName.contains("\\"),
+              !requirement.fileName.hasPrefix("/") else {
+            return nil
+        }
+        let folderName = descriptor.repository.map(ModelStore.safeFolderName(for:)) ?? descriptor.id.rawValue
+        let modelRoot = rootURL.appendingPathComponent(folderName, isDirectory: true)
         let candidate = modelRoot.appendingPathComponent(requirement.fileName).standardizedFileURL
         let resolvedRoot = rootURL.resolvingSymlinksInPath().standardizedFileURL
         let resolvedCandidate = candidate.resolvingSymlinksInPath().standardizedFileURL

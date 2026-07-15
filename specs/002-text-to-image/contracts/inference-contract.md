@@ -1,198 +1,173 @@
-# Inference and Service Contract
+# Inference, Download, and Service Contract
 
 **Feature**: `002-text-to-image`
 **Package**: `https://github.com/haplollc/Mirage.git` exact `0.2.0`
 
-This contract isolates the SwiftUI feature from the package's native engine, global progress callback, file system, memory query, safety analyzer, and Photos framework. Names are implementation targets; signatures may receive syntax-only adjustments required by Xcode diagnostics without changing semantics.
+This contract isolates SwiftUI from repository parsing, Hugging Face metadata/downloads, Files-visible model storage, native inference, output safety, memory gates, and Photos.
 
-## Package adapter contract
-
-```swift
-protocol ImageGenerating: Sendable {
-    func generate(
-        _ input: GenerationInput,
-        progress: @escaping @Sendable (GenerationProgress) -> Void
-    ) async throws -> GeneratedImagePayload
-
-    func unload() async
-}
-
-struct GeneratedImagePayload: Sendable, Equatable {
-    let pngData: Data
-    let pixelWidth: Int
-    let pixelHeight: Int
-}
-```
-
-`MirageInferenceService` is an actor implementing `ImageGenerating`.
-
-### Required semantics
-
-- Resolve the selected descriptor and model files inside the service boundary.
-- Reuse an existing `Engine` only when its descriptor ID matches.
-- Before loading a different model, clear the package callback, release the previous engine, and re-run availability/memory gates.
-- Construct package `ModelFiles` using only resolver-produced local URLs.
-- Install `Mirage.setProgressCallback` immediately before generation; bridge sampler-thread values without touching UI state.
-- Clear the callback in `defer` on success, failure, or task invalidation.
-- Call `Engine.generate(_:)` exactly once per accepted request.
-- Encode the returned image with the package's PNG helper or equivalent metadata-free ImageIO path.
-- Never expose the package engine, native context, raw error text, or local file paths outside the service.
-- Maintain busy state until native generation actually returns. Swift task cancellation must not be represented as native cancellation.
-
-## Model catalog contract
+## Model source contract
 
 ```swift
-protocol ModelCatalogProviding: Sendable {
-    var descriptors: [ModelDescriptor] { get }
-    func descriptor(id: ModelID) -> ModelDescriptor?
+struct ModelRepositoryReference: Hashable, Codable, Sendable {
+    let owner: String
+    let repository: String
 }
 ```
 
-The ordered descriptor IDs are fixed:
+Required semantics:
 
-```text
-stable-diffusion
-sdxl
-sd3
-flux1
-chroma1-hd
-qwen-image
-ernie-image-turbo
-z-image-turbo
+- Accept only public unauthenticated Hugging Face model repositories.
+- Normalize `owner/repository` and `https://huggingface.co/owner/repository`.
+- Reject credentials, tokens, query strings, fragments, ports, non-HTTPS URLs, non-Hugging-Face hosts, encoded path separators, malformed path components, private repositories, and gated repositories.
+- Never place prompts, generated pixels, credentials, or private user data in repository URLs, folder names, logs, fixtures, or evidence.
+
+## Download contract
+
+```swift
+protocol ModelDownloading: Sendable {
+    func resolve(reference: ModelRepositoryReference) async throws -> ModelDownloadPlan
+    func download(
+        plan: ModelDownloadPlan,
+        to stagingURL: URL,
+        progress: @escaping @Sendable (ModelDownloadProgress) -> Void
+    ) async throws
+}
 ```
 
-The provider always returns all eight. Availability is computed separately and never removes an entry.
+Required semantics:
+
+- Request metadata from `https://huggingface.co/api/models/<owner>/<repository>?blobs=true`.
+- Cap metadata at 2 MiB.
+- Require public, ungated metadata; a 40-character immutable commit SHA; a nonempty license; positive file sizes; and 64-character LFS SHA-256 hashes.
+- Select only safe relative `.gguf` and `.safetensors` paths.
+- Enforce at most 24 files, at most 16 GiB per file, and at most 24 GiB per snapshot.
+- Use HTTPS and default server trust handling.
+- Allow redirects only to `huggingface.co`, `cdn-lfs.huggingface.co`, `cdn-lfs-us-1.huggingface.co`, `cdn-lfs-eu-1.huggingface.co`, `cdn-lfs.hf.co`, and `cas-bridge.xethub.hf.co`.
+- Stream file downloads to staging and report byte progress when expected size is known.
+- Verify size and SHA-256 for every file before returning.
+- Remove staging data on cancellation or failure; never mark partial bytes as usable.
+
+## Model store contract
+
+```swift
+protocol ModelSnapshotStoring: Sendable {
+    var modelRootURL: URL { get }
+    func stagingURL(for reference: ModelRepositoryReference) async throws -> URL
+    func discardStagingURL(_ url: URL) async
+    func validateCanStore(plan: ModelDownloadPlan) async throws
+    func promote(plan: ModelDownloadPlan, from stagingURL: URL) async throws -> LocalModelSnapshot
+    func refreshSnapshots() async -> [LocalModelSnapshot]
+    func availableBytes() async -> Int64
+}
+```
+
+Required semantics:
+
+- Root promoted snapshots under `Documents/Mirage Models`.
+- Keep staging outside the promoted model folder.
+- Use stable safe repository folder names with a digest.
+- Validate available storage before and during promotion.
+- Enforce containment, safe filenames, extension allowlist, file count, byte count, SHA-256, case-collision checks, symlink rejection, executable rejection, archive rejection, hidden-file rejection except `.mirage-snapshot.json`, and unexpected-file rejection.
+- Write snapshot metadata with source, immutable revision, folder name, license, file list, sizes, and hashes.
+- Promote atomically through a replacement directory and remove staging on success.
+- On Files edits/removals, refresh compatibility and fail closed instead of loading stale or tampered files.
+
+## Catalog contract
+
+```swift
+enum ModelCatalog {
+    static let featuredReferences: [ModelRepositoryReference]
+    static let entries: [ModelDescriptor]
+    static func descriptor(for reference: ModelRepositoryReference) -> ModelDescriptor?
+    static func catalogEntries(downloadedSnapshots: [LocalModelSnapshot]) -> [ModelCatalogEntry]
+}
+```
+
+Featured references are exact and ordered:
+
+1. `jc-builds/Z-Image-Turbo-iOS`
+2. `jc-builds/ERNIE-Image-Turbo-iOS`
+3. `jc-builds/Chroma1-HD-iOS`
+
+Featured descriptors bind to the exact commits, Apache-2.0 license metadata, required files, byte counts, LFS SHA-256 hashes, and profiles recorded in `ModelEvaluationManifest.json`. The exact reviewed Z-Image snapshot is runtime-enabled; ERNIE and Chroma remain disabled. Custom snapshots are visible after download but default to `unknownCustomRepository` and are unselectable until local compatibility is proven.
 
 ## Model file resolver contract
 
 ```swift
-protocol ModelFileResolving: Sendable {
+protocol ModelAvailabilityProviding: Sendable {
     func availability(for descriptor: ModelDescriptor) async -> ModelAvailability
-    func resolve(for descriptor: ModelDescriptor) async throws -> ResolvedModelFiles
-}
-
-struct ResolvedModelFiles: Sendable {
-    let diffusionModel: URL
-    let vae: URL?
-    let textEncoder: URL?
+    func resolve(_ descriptor: ModelDescriptor) async throws -> ResolvedModelFiles
 }
 ```
 
-### Required semantics
+Required semantics:
 
-- Root all resolution under the app's `Application Support/Models` directory.
-- Reject absolute filenames, separators, traversal, symlinks escaping the root, wrong file types, missing files, size mismatch, and hash mismatch.
-- Require license, device, profile, safety, package-version, and evaluation approval.
-- Exclude the model root from backup and use appropriate file protection.
-- Return typed availability/errors; do not expose paths or hashes to user-facing messages.
+- Resolve only from the Files-visible `Documents/Mirage Models/<safe-repository-folder>` root.
+- Recheck protected data, license, evaluation approval, OS, device allowlist, profile, safety policy, memory, file presence, extension, symlink/executable flags, byte count, and SHA-256 before returning native file URLs.
+- Return typed availability/errors; do not expose paths, hashes, prompts, native diagnostics, or hidden policy details to UI copy.
 
-## Memory gate contract
+## Inference contract
 
 ```swift
-protocol AvailableMemoryProviding: Sendable {
-    func availableBytes() -> UInt64
+protocol ImageGenerating: Sendable {
+    func generate(
+        request: GenerationRequestSnapshot,
+        descriptor: ModelDescriptor,
+        progress: @escaping @Sendable (GenerationProgress) -> Void
+    ) async throws -> GeneratedImage
 }
 ```
 
-A load passes only when:
+`MirageInferenceService` is an actor. Required semantics:
 
-```text
-available == unknown
-OR
-available >= max(
-  diffusionFileBytes + 1 GiB,
-  descriptor.bundleBytes + descriptor.activationHeadroomBytes
-)
-```
+- Listing, resolving metadata, downloading, and catalog refresh must not load native weights.
+- Accept generation only for an explicit logical selection and an available descriptor.
+- Resolve files inside the service boundary immediately before native load.
+- Serialize native attempts; do not allow competing loads or inference.
+- Create package `ModelFiles(diffusionModel:vae:textEncoder:)` only from resolver-produced URLs.
+- Load the native `Engine` after SEND begins the selected model attempt.
+- Install `Mirage.setProgressCallback` before native generation and clear it on every path.
+- Call `Engine.generate(_:)` exactly once per accepted request.
+- Convert `CGImage` to immutable PNG `Data`, validate dimensions, and return a `GeneratedImage`.
+- Await `driver.unload()` after success, native failure, invalid output, cancellation, or discarded late result before accepting the next attempt.
+- Do not reuse an engine across attempts. Logical selection may remain visible after unload, but native model memory must not remain loaded.
+- Do not claim native inference cancellation; package `0.2.0` does not expose a reliable cancellation API.
 
-The unknown value may be accepted only if the descriptor/device pair has separate conservative physical-device evidence. Otherwise return `insufficientMemory` rather than attempting a crash-prone load.
+## Safety and Photos contracts
 
-## Prompt safety contract
+Prompt safety:
 
-```swift
-protocol PromptSafetyEvaluating: Sendable {
-    func evaluate(_ prompt: String) async -> PromptSafetyDecision
-}
-```
+- Normalize and validate 1...1000 visible characters.
+- Treat prompt text only as untrusted generation content.
+- Never log or persist the prompt.
 
-### Required semantics
+Output safety:
 
-- Normalize without changing user intent; enforce 1–1,000 visible characters.
-- Treat input as untrusted generation content only.
-- Return `allowed(normalizedPrompt)` or a coarse recoverable refusal.
-- Never emit hidden policy text, rewrite the prompt silently, or log the prompt.
-- Maintain versioned fixtures for harmful content, injection/jailbreak text, stereotypes, representative bias, unsupported languages, and false positives.
+- Validate nonempty PNG data and expected dimensions.
+- Run on-device Sensitive Content Analysis.
+- Fail closed when analysis is required and unavailable.
+- Preserve the previous allowed image on refusal or invalid output.
 
-## Output safety contract
+Photos:
 
-```swift
-protocol ImageSafetyEvaluating: Sendable {
-    func evaluate(_ payload: GeneratedImagePayload) async -> SafetyResult
-}
-```
-
-### Required semantics
-
-- Confirm nonempty decodable PNG and expected dimensions before content analysis.
-- Use on-device Sensitive Content Analysis where available.
-- Fail closed for analyzer failure when policy requires review.
-- Do not display or save refused/unreviewed output.
-- Preserve the previous allowed image when the new output is refused or invalid.
-- Do not persist analyzer details or generated pixels.
-
-## Photo Library contract
-
-```swift
-protocol PhotoLibrarySaving: Sendable {
-    func authorizationStatus() async -> PhotoAddAuthorization
-    func savePNG(_ data: Data) async throws
-}
-```
-
-### Required semantics
-
-- Ask only for add-only authorization and only after explicit Save.
+- Request add-only authorization only after explicit Save.
 - Save exactly the current validated PNG once per accepted action.
-- Do not request read access, enumerate assets, or attach prompt/model metadata.
-- Return typed denied, restricted, encoding, and save failures.
-- Keep the displayed image and allow recovery when save fails.
+- Do not read Photos or attach prompt/model metadata.
 
 ## View-model contract
 
-`@MainActor @Observable final class ImageGenerationViewModel` owns:
+`@MainActor ImageGenerationViewModel` owns:
 
-- ordered visible descriptors and availability;
-- selected model ID;
+- featured and downloaded catalog entries;
+- download states and pending confirmation;
+- explicit selected model ID;
 - prompt and validation message;
-- one `ImageGenerationState`;
-- one generation task token/request ID;
-- current displayed PNG data;
-- save outcome.
+- one operation state;
+- one generation task;
+- one download task;
+- current displayed PNG;
+- save state.
 
-### SEND preconditions
+SEND is accepted only when the prompt is valid, a compatible fully downloaded model is explicitly selected and available, no download/load/generation/safety operation conflicts, and prompt safety allows the request.
 
-SEND is accepted only when:
-
-- trimmed prompt has 1–1,000 visible characters;
-- the selected descriptor is available;
-- no load, inference, safety review, or save transition conflicts;
-- prompt safety returns allowed.
-
-A request snapshots the selected model and prompt. Later UI edits cannot mutate an in-flight request.
-
-## Typed error mapping
-
-| Internal category | User-facing behavior |
-|---|---|
-| Missing/integrity-failed model assets | Keep selection visible, disable SEND, explain that model files are unavailable. |
-| Unsupported device / insufficient memory | Disable that model and suggest another available model. |
-| License/profile/safety not approved | Disable model as unavailable in this build. |
-| Package model-load failure | Preserve prior image; offer Retry after rechecking availability. |
-| Package generation failure | Preserve prior image and prompt; offer Retry. |
-| Invalid image / PNG failure | Preserve prior image; report that the result could not be used. |
-| Prompt refusal | Preserve prior image; allow prompt editing. |
-| Output refusal | Do not display/save new image; preserve prior image. |
-| Photos denied/restricted | Keep image; explain Settings recovery without claiming save. |
-| Photos write failure | Keep image; allow another explicit Save attempt. |
-
-No user-facing error contains native log text, filesystem paths, hashes, hidden safety instructions, or raw permission diagnostics.
+No user-facing error contains native log text, filesystem paths, hashes, hidden safety instructions, credentials, or raw permission diagnostics.

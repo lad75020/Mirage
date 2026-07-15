@@ -1,51 +1,93 @@
 # Implementation evidence
 
-Date: 2026-07-14  
+Date: 2026-07-15
 Feature: `002-text-to-image`
 
-## Implemented
+## Implemented source behavior
 
 - iOS 26.0 and Swift 6 XcodeGen configuration.
 - Exact `haplollc/Mirage` package requirement at `0.2.0` and `MirageApp` module separation.
 - Increased-memory and extended-virtual-addressing entitlements.
 - No-collection privacy manifest and add-only Photos purpose text.
-- Eight-family closed catalog with typed availability and one reviewed-but-disabled ERNIE candidate manifest.
-- Application Support path containment, symlink defense, file protection, backup exclusion, size/hash verification, memory and protected-data gates.
-- Actor-isolated Quick Start adapter with one retained engine, serial requests, request-scoped progress, callback cleanup, and PNG output.
-- MainActor observable state orchestration, previous-result retention, prompt/output safety, accessible one-page UI, model selection, and Save flow.
-- Unit, fake-integration, environment-gated real-model, UI journey, security, evaluation, and performance test sources.
+- Files sharing keys for user-visible `Documents/Mirage Models`.
+- Three exact featured public Hugging Face references:
+  - `jc-builds/Z-Image-Turbo-iOS`
+  - `jc-builds/ERNIE-Image-Turbo-iOS`
+  - `jc-builds/Chroma1-HD-iOS`
+- Public custom Hugging Face reference parsing with credential/private/gated/non-Hugging-Face rejection.
+- Hugging Face API metadata resolution with immutable commit SHA, license, size, and LFS SHA-256 requirements.
+- Official-host redirect allowlist, metadata/file count/file size/snapshot caps, byte progress, integrity verification, and cancellation cleanup.
+- Files-visible model store under `Documents/Mirage Models`, staging isolation, atomic promotion, snapshot metadata, data protection, containment, executable/archive/symlink/case-collision checks, and Files tamper refresh.
+- Custom snapshots fail closed by default.
+- MainActor download/list/refresh/selection orchestration with separate download, compatibility, and generation states.
+- Actor-isolated inference service that loads only inside an accepted SEND attempt, serializes attempts, clears callbacks, and awaits unload after every attempt.
+- Prompt/output safety, previous-result retention, add-only Photos save flow, accessible one-page UI, and deterministic tests for the above boundaries.
 
-## Focused non-Xcode checks
+## XcodeMCP evidence obtained
 
-| Check | Result | Scope |
-|---|---|---|
-| XcodeGen generation | Passed | Intermediate project metadata only |
-| Swift parser | 37/37 passed | Feature, unit-test, and UI-test syntax only |
-| Swift 6 release semantic typecheck | Passed against a temporary Mirage 0.2.0 API stub | App sources; not package linkage |
-| Swift 6 debug/test semantic typecheck | Passed against temporary Mirage 0.2.0 and XCTest API stubs | App, unit-test, and UI-test sources; not test execution |
+Truthful evidence already obtained through Hermes-configured XcodeMCP in the open Xcode project:
 
-The temporary API stub mirrored only public signatures inspected from Mirage 0.2.0. It is not build or runtime evidence and was removed after the check.
+| Evidence | Result |
+|---|---|
+| BuildProject | Current Z-Image compatibility verification succeeded with 0 errors. |
+| Focused Z-Image tests | `testDocumentedZImageSnapshotIsCompatibleAndSelectable` and `testEvaluationManifestMatchesFeaturedCatalogCandidates` both passed. |
+| Earlier full `MirageTests` target | 68 selected: 67 passed, 1 environment-gated real-package integration test skipped, 0 failed. |
+| Issue Navigator | 0 errors and 170 warnings; warnings are primarily pre-existing MainActor diagnostics in UI tests plus one recommended-settings warning. |
 
-## Swift 6 ownership review
+The earlier full-target XcodeMCP run exercised all 20 `MirageTests` suites, including:
+
+- `MirageInferenceServiceTests`
+- `ImageGenerationViewModelTests`
+- `ImageGenerationViewModelModelSelectionTests`
+- `ModelRepositoryReferenceTests`
+- `ModelCatalogTests`
+- `HuggingFaceModelDownloaderTests`
+- `ModelStoreTests`
+- `ModelFileResolverTests`
+- `ImageGenerationStateTests`
+- `ImageGenerationSecurityTests`
+- `ModelAssetSecurityTests`
+
+The only skipped test was `MirageInferenceServiceIntegrationTests/testRealPackageGenerationWhenApprovedModelsAreProvisioned()` because approved local weights were not provisioned. This evidence supports marking T019 and T074 complete and supports source/test completion for T057-T073 and T075-T079 where current code and tests satisfy the task text.
+
+Current CLI development verification executed 69 unit tests with 68 passed, the same approved-bundle integration test skipped, and 0 failures. An arm64 iOS Simulator Release build also succeeded. A generic universal simulator Release build is unsupported because the upstream native `sdcpp` artifact does not contain an x86_64 simulator slice.
+
+## XcodeMCP limitation
+
+XcodeMCP `RunSomeTests` selected all 12 UI tests but returned `No result` for each: 0 executed and 12 not run. This is not a pass. A CLI fallback executed all 12 UI journeys with 12 passing and 0 failures, but that is intermediate evidence rather than constitutional final evidence. T080 and any UI/accessibility release gate remain blocked until XcodeMCP returns a real UI-test result.
+
+## Not performed
+
+No claim is made for:
+
+- independently captured multi-GB download evidence (a Z-Image download was reported successful by the user);
+- physical-device run;
+- physical-device Files visibility;
+- physical-device load/generation/unload;
+- 20-cycle featured model evaluation;
+- Instruments memory, energy, or thermal trace;
+- authorized Objection/Frida runtime inspection;
+- legal/release approval;
+- App Store privacy approval.
+
+The exact reviewed Z-Image descriptor is `evaluationApproved = true` and can be selected after verified download. ERNIE, Chroma, and custom repositories remain fail-closed. This runtime enablement is not evidence of a completed physical-device or release evaluation.
+
+## Ownership and concurrency review
 
 - UI-observable state is `@MainActor`.
-- File resolution, inference, Photos deduplication, preview generation, and test doubles are actors where mutable state crosses tasks.
+- Downloader, store, resolver, inference, and test doubles are actor/protocol boundaries where mutable state crosses tasks.
 - Domain values and dependency protocols are `Sendable`.
-- The native engine is retained only inside one actor and unloaded before model switches.
-- The global Mirage progress callback is installed immediately before generation and cleared with `defer`.
-- Progress carries request identity; stale updates are ignored on the MainActor.
-- The package does not promise immediate native cancellation, so the UI intentionally offers no misleading Cancel button.
-- Raw dependency errors, prompts, model paths, and generated data are neither logged nor surfaced.
+- The native engine is held only inside the driver actor for one attempt.
+- The global Mirage progress callback is installed for generation and cleared before unload.
+- The service awaits unload before returning, so a second attempt cannot start while the previous engine remains logically loaded.
+- The package does not expose reliable native cancellation, so the UI does not claim native inference cancellation.
+- Download cancellation is supported and removes staging data.
+- Raw dependency errors, prompts, model paths, credentials, and generated data are not surfaced or logged intentionally.
 
-## Xcode MCP evidence
+## Remaining blockers
 
-**BLOCKED.** No Hermes-configured Xcode MCP tools are exposed in this session. Therefore the following are not claimed:
-
-- Real package resolution or binary-artifact inspection.
-- Source/resource/entitlement/Info.plist/scheme inspection in Xcode.
-- Compiler diagnostics, unit tests, UI tests, build, install, or launch.
-- iPhone/iPad visual and accessibility verification.
-
-## Physical-device and model evidence
-
-**BLOCKED.** No approved model/device pair is available. `evaluationApproved` remains false. See `model-provisioning.md` and `model-evaluation-results.md`.
+1. XcodeMCP UI test execution must return a concrete pass/fail result.
+2. XcodeMCP full scheme test/build/launch inspection remains incomplete.
+3. Eligible physical devices and real model downloads are still required.
+4. Runtime privacy/security inspection is still required.
+5. Featured model legal/release approval is still required.

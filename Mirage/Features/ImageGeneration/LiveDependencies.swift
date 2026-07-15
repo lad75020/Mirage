@@ -24,12 +24,16 @@ private actor UnavailableGenerator: ImageGenerating {
 enum LiveDependencies {
     static func makeViewModel() -> ImageGenerationViewModel {
         do {
-            let resolver = try ModelFileResolver()
+            let store = try ModelStore()
+            let resolver = try ModelFileResolver(rootURL: store.modelRootURL)
+            let downloader = HuggingFaceModelDownloader()
             return ImageGenerationViewModel(
                 availabilityProvider: resolver,
                 generator: MirageInferenceService(resolver: resolver),
                 safetyService: ImageSafetyService(),
-                photoSaver: PhotoLibrarySaver()
+                photoSaver: PhotoLibrarySaver(),
+                downloader: downloader,
+                modelStore: store
             )
         } catch {
             let unavailable = UnavailableModelProvider()

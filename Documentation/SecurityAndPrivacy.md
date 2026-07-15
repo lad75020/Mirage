@@ -3,14 +3,21 @@
 ## Data handling
 
 - Prompt text, model selection, progress, and generated pixels remain in memory unless the user explicitly saves the result.
-- Mirage defines no analytics, telemetry, networking, account, gallery, or cloud persistence path.
-- Model files are read only from the app's protected Application Support container and are excluded from backup.
+- Mirage defines no analytics, telemetry, account, gallery, or cloud persistence path. Network access is limited to explicit public Hugging Face model metadata and file downloads.
+- Model files are downloaded only after explicit user action and promoted under `Documents/Mirage Models` so they are visible in Files.
+- Prompts, generated images, credentials, tokens, and private repository data are not written to model folders, URLs, logs, fixtures, or evidence.
 - Generated images are structurally validated, analyzed on-device, and saved as metadata-free PNG data.
 - Photos access is add-only and requested only after an explicit Save action.
 
 ## Model trust boundary
 
-`ModelFileResolver` rejects paths outside its model root, symlink escapes, missing files, unsupported extensions, missing or malformed SHA-256 hashes, hash mismatches, unapproved license state, incomplete evaluation state, insufficient available memory, and locked protected data. The catalog therefore fails closed until an exact reviewed manifest is supplied.
+`ModelRepositoryReference` accepts only public unauthenticated Hugging Face model repositories. Private, gated, credentialed, non-Hugging-Face, query/fragment, port, and malformed references are rejected.
+
+`HuggingFaceModelDownloader` requires an immutable commit SHA, license, file sizes, and LFS SHA-256 hashes. Redirects are restricted to official Hugging Face/CDN hosts, metadata is capped at 2 MiB, snapshots are capped at 24 files and 24 GiB, and each file is capped at 16 GiB.
+
+`ModelStore` stages downloads outside the promoted folder, removes staging on cancellation/failure, validates containment, file count, byte counts, hashes, symlinks, case collisions, executables, archives, hidden files, and unexpected files, then atomically promotes into `Documents/Mirage Models`.
+
+`ModelFileResolver` rechecks protected data, device/OS, memory, license, evaluation approval, supported files, byte counts, and SHA-256 before returning native URLs. Featured and custom models fail closed until all gates pass.
 
 Model weights are never committed. `.gitignore` excludes GGUF, safetensors, Core ML, and local model directories.
 
@@ -26,11 +33,12 @@ Model weights are never committed. `.gitignore` excludes GGUF, safetensors, Core
 
 ## Logging and secrets
 
-The implementation does not log prompts, file paths, model contents, generated images, authorization decisions, or raw dependency errors. No API key or secret is required.
+The implementation does not log prompts, model contents, generated images, authorization decisions, credentials, or raw dependency errors. No API key, Hugging Face token, or secret is required or supported.
 
 ## Remaining release evidence
 
-- Physical-device objection/MASTG validation: **not run**.
-- Approved model hashes and complete transitive licenses: **not supplied**.
-- Xcode MCP build/test/launch verification: **blocked until the server is exposed to this session**.
-- Sensitive-content and quality evaluation on approved real outputs: **not run**.
+- XcodeMCP BuildProject and focused tests: **passed** as recorded in `specs/002-text-to-image/implementation-evidence.md`.
+- XcodeMCP UI tests: **blocked** because RunSomeTests returned "No result".
+- Physical-device Objection/MASTG validation: **not run**.
+- Real multi-GB download, Files visibility, physical load/generation/unload, Instruments, and 20-cycle evaluation: **not run**.
+- Legal/release approval: **not run**.

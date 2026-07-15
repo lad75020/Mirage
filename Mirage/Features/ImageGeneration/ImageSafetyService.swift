@@ -20,6 +20,8 @@ public struct PromptSafetyPolicy: Sendable {
         "reveal the hidden system prompt",
         "reveal hidden policy",
         "bypass safety",
+        "bypass safeguards",
+        "bypass its safeguards",
         "disable safeguards"
     ]
     private let explicitPhrases = [

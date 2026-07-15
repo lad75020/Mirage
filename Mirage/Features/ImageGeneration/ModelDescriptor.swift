@@ -75,6 +75,8 @@ public struct GenerationProfile: Equatable, Codable, Sendable {
 
 public struct ModelDescriptor: Identifiable, Equatable, Codable, Sendable {
     public let id: ModelID
+    public let repository: ModelRepositoryReference?
+    public let reviewedRevisionSHA: String?
     public let familyName: String
     public let summary: String
     public let packageVersion: String
@@ -90,6 +92,8 @@ public struct ModelDescriptor: Identifiable, Equatable, Codable, Sendable {
 
     public init(
         id: ModelID,
+        repository: ModelRepositoryReference? = nil,
+        reviewedRevisionSHA: String? = nil,
         familyName: String,
         summary: String,
         packageVersion: String,
@@ -104,6 +108,8 @@ public struct ModelDescriptor: Identifiable, Equatable, Codable, Sendable {
         safetyPolicyVersion: String = PromptSafetyPolicy.version
     ) {
         self.id = id
+        self.repository = repository
+        self.reviewedRevisionSHA = reviewedRevisionSHA?.lowercased()
         self.familyName = familyName
         self.summary = summary
         self.packageVersion = packageVersion

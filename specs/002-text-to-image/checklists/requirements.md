@@ -33,7 +33,9 @@
 
 ## Notes
 
-- Validation completed on 2026-07-14 in one pass.
-- The fixed catalog is the eight model families documented by haplollc/Mirage. Exact weight files, quantizations, auxiliary encoders/VAEs, and enabled-device matrix are deferred to planning because they require licensing, compatibility, quality, safety, memory, energy, thermal, and physical-device evidence. Arbitrary model import remains out of scope.
-- iOS 26.0+, on-device processing, privacy behavior, safety evaluation, and Xcode MCP-only final verification are constitutional product constraints rather than accidental implementation detail.
-- The specification requires no clarification before planning.
+- Validation completed on 2026-07-14 and rechecked after the Hugging Face download refinement.
+- The removed fixed eight-family catalog is superseded by exactly three featured public Hugging Face repositories plus user-entered public Hugging Face references.
+- Private, gated, token-authenticated, and non-Hugging-Face sources remain out of scope.
+- Featured revisions, file sizes, SHA-256 hashes, licenses, profiles, Files-visible storage, download integrity, custom fail-closed policy, explicit selection, lazy native load, and mandatory post-attempt unload are now testable requirements.
+- iOS 26.0+, on-device inference, prompt/result privacy, safety evaluation, Files visibility, and Xcode MCP-only final verification are constitutional product constraints rather than accidental implementation detail.
+- The specification requires no clarification before implementation or evidence collection.

@@ -82,6 +82,10 @@ actor StubAvailabilityProvider: ModelAvailabilityProviding {
         }
         return resolvedFiles
     }
+
+    func setAvailability(_ availability: ModelAvailability, for id: ModelID) {
+        availabilityByID[id] = availability
+    }
 }
 
 actor StubGenerator: ImageGenerating {
@@ -130,4 +134,78 @@ actor StubPhotoSaver: PhotoLibrarySaving {
     }
 
     func saveCount() -> Int { savedPayloads.count }
+}
+
+actor StubModelDownloader: ModelDownloading {
+    var plan: ModelDownloadPlan?
+    var downloadedPlans: [ModelDownloadPlan] = []
+
+    func resolve(reference: ModelRepositoryReference) async throws -> ModelDownloadPlan {
+        if let plan { return plan }
+        let revision = try ResolvedModelRevision(
+            reference: reference,
+            commitSHA: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            license: "apache-2.0",
+            totalSizeBytes: 0
+        )
+        return ModelDownloadPlan(revision: revision, files: [])
+    }
+
+    func download(
+        plan: ModelDownloadPlan,
+        to stagingURL: URL,
+        progress: @escaping @Sendable (ModelDownloadProgress) -> Void
+    ) async throws {
+        downloadedPlans.append(plan)
+        progress(.init(completedBytes: plan.expectedSizeBytes, totalBytes: plan.expectedSizeBytes))
+    }
+
+    func setPlan(_ value: ModelDownloadPlan?) {
+        plan = value
+    }
+}
+
+actor StubModelStore: ModelSnapshotStoring {
+    nonisolated let modelRootURL: URL
+    var snapshots: [LocalModelSnapshot]
+    var promotedSnapshot: LocalModelSnapshot?
+
+    init(
+        modelRootURL: URL = URL(fileURLWithPath: "/tmp/Mirage Models", isDirectory: true),
+        snapshots: [LocalModelSnapshot] = [],
+        promotedSnapshot: LocalModelSnapshot? = nil
+    ) {
+        self.modelRootURL = modelRootURL
+        self.snapshots = snapshots
+        self.promotedSnapshot = promotedSnapshot
+    }
+
+    func stagingURL(for reference: ModelRepositoryReference) async throws -> URL {
+        modelRootURL.appendingPathComponent(".\(ModelStore.safeFolderName(for: reference)).staging", isDirectory: true)
+    }
+
+    func discardStagingURL(_ url: URL) async {}
+
+    func validateCanStore(plan: ModelDownloadPlan) async throws {}
+
+    func promote(plan: ModelDownloadPlan, from stagingURL: URL) async throws -> LocalModelSnapshot {
+        let snapshot = promotedSnapshot ?? LocalModelSnapshot(
+            reference: plan.revision.reference,
+            commitSHA: plan.revision.commitSHA,
+            folderName: ModelStore.safeFolderName(for: plan.revision.reference),
+            folderURL: modelRootURL.appendingPathComponent(ModelStore.safeFolderName(for: plan.revision.reference)),
+            files: plan.files,
+            license: plan.revision.license,
+            compatibility: .unknownCustomRepository
+        )
+        snapshots.append(snapshot)
+        return snapshot
+    }
+
+    func refreshSnapshots() async -> [LocalModelSnapshot] { snapshots }
+    func availableBytes() async -> Int64 { .max }
+
+    func replaceSnapshots(_ value: [LocalModelSnapshot]) {
+        snapshots = value
+    }
 }

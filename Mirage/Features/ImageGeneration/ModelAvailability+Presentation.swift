@@ -41,7 +41,7 @@ public extension ModelAvailability {
         case .protectedDataUnavailable:
             "Unlock the device so protected model files can be read."
         case .invalidPath:
-            "Mirage only reads models from its protected Application Support folder."
+            "Mirage only reads models from its protected Files-visible Mirage Models folder."
         case .incompatibleAssets:
             "The local files do not match this model family."
         }

@@ -9,12 +9,15 @@ final class ImageGenerationSecurityTests: XCTestCase {
             .deletingLastPathComponent()
         let sourceRoot = projectRoot.appendingPathComponent("Mirage/Features/ImageGeneration", isDirectory: true)
         let enumerator = try XCTUnwrap(FileManager.default.enumerator(at: sourceRoot, includingPropertiesForKeys: nil))
-        let forbidden = ["UserDefaults", "UIPasteboard", "URLSession", "NWConnection", "print(", "Logger(", "os_log"]
+        let forbidden = ["UserDefaults", "UIPasteboard", "NWConnection", "print(", "Logger(", "os_log"]
 
         for case let url as URL in enumerator where url.pathExtension == "swift" {
             let source = try String(contentsOf: url, encoding: .utf8)
             for symbol in forbidden {
                 XCTAssertFalse(source.contains(symbol), "Forbidden boundary \(symbol) in \(url.lastPathComponent)")
+            }
+            if source.contains("URLSession") {
+                XCTAssertEqual(url.lastPathComponent, "HuggingFaceModelDownloader.swift")
             }
         }
     }
@@ -39,5 +42,17 @@ final class ImageGenerationSecurityTests: XCTestCase {
         let project = try String(contentsOf: projectRoot.appendingPathComponent("project.yml"), encoding: .utf8)
         XCTAssertTrue(project.contains("NSPhotoLibraryAddUsageDescription"))
         XCTAssertFalse(project.contains("NSPhotoLibraryUsageDescription"))
+    }
+
+    func testProjectEnablesFilesWithoutATSExceptionsOrCredentials() throws {
+        let projectRoot = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+        let project = try String(contentsOf: projectRoot.appendingPathComponent("project.yml"), encoding: .utf8)
+        XCTAssertTrue(project.contains("INFOPLIST_KEY_UIFileSharingEnabled: YES"))
+        XCTAssertTrue(project.contains("INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace: YES"))
+        XCTAssertFalse(project.contains("NSAppTransportSecurity"))
+        XCTAssertFalse(project.localizedCaseInsensitiveContains("apikey"))
+        XCTAssertFalse(project.localizedCaseInsensitiveContains("token:"))
     }
 }

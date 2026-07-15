@@ -1,49 +1,206 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "policyVersion": "2026-07-14",
   "package": {
     "url": "https://github.com/haplollc/Mirage.git",
     "exactVersion": "0.2.0"
   },
+  "downloadPolicy": {
+    "sourceScope": "public-unauthenticated-huggingface-model-repositories-only",
+    "officialHosts": [
+      "huggingface.co",
+      "cdn-lfs.huggingface.co",
+      "cdn-lfs-us-1.huggingface.co",
+      "cdn-lfs-eu-1.huggingface.co",
+      "cdn-lfs.hf.co",
+      "cas-bridge.xethub.hf.co"
+    ],
+    "metadataByteLimit": 2097152,
+    "maximumModelFileCount": 24,
+    "maximumModelFileBytes": 17179869184,
+    "maximumSnapshotBytes": 25769803776,
+    "requiresExplicitSizeAndLicenseConfirmation": true,
+    "requiresImmutableCommitSHA": true,
+    "requiresLfsSHA256ForEveryDownloadedFile": true
+  },
+  "customRepositoryPolicy": {
+    "defaultCompatibility": "unknownCustomRepository",
+    "evaluationApproved": false,
+    "tokenOrPrivateRepositorySupport": false,
+    "releaseBehavior": "downloadable-but-unselectable-until-local-validation",
+    "requiredBeforeSelection": [
+      "public ungated repository metadata",
+      "immutable commit SHA",
+      "safe filenames and destination containment",
+      "complete size and LFS SHA-256 metadata",
+      "successful staged download and atomic promotion",
+      "local Mirage package file/profile compatibility",
+      "device memory and OS gates",
+      "prompt and output safety policy availability"
+    ]
+  },
   "models": [
+    {
+      "id": "zImageTurbo",
+      "family": "Z-Image-Turbo",
+      "reference": {
+        "owner": "jc-builds",
+        "repository": "Z-Image-Turbo-iOS",
+        "commitSHA": "97ae389b962ee927d83c1911be743c8d82c11674",
+        "visibility": "public",
+        "gated": false
+      },
+      "license": "apache-2.0",
+      "licenseApproved": true,
+      "evaluationApproved": true,
+      "minimumAvailableMemoryBytes": 8000000000,
+      "minimumOSMajorVersion": 26,
+      "supportedDeviceIdentifiers": [],
+      "safetyPolicyVersion": "2026-07-14",
+      "profile": {
+        "width": 1024,
+        "height": 1024,
+        "steps": 9,
+        "cfgScale": 1.0
+      },
+      "qualityThresholds": {
+        "status": "runtime-enabled-pending-release-evidence",
+        "minimumSuccessfulRunsPerDevice": 20,
+        "maximumCrashes": 0,
+        "maximumSensitiveOutputEscapes": 0,
+        "requiresPostAttemptUnloadEvidence": true
+      },
+      "files": [
+        {
+          "name": "Qwen3-4B-Instruct-2507-Q4_K_M.gguf",
+          "bytes": 2497281120,
+          "sha256": "3605803b982cb64aead44f6c1b2ae36e3acdb41d8e46c8a94c6533bc4c67e597"
+        },
+        {
+          "name": "ae.safetensors",
+          "bytes": 335304388,
+          "sha256": "afc8e28272cd15db3919bacdb6918ce9c1ed22e96cb12c4d5ed0fba823529e38"
+        },
+        {
+          "name": "z-image-turbo-Q3_K_M.gguf",
+          "bytes": 4186161216,
+          "sha256": "7070b605165c372833c21c6bd45e73b242cf0db261b4d5436039363f3dbd4e0e"
+        }
+      ],
+      "releaseBlockers": [
+        "No physical-device download, load, generation, unload, memory, energy, or thermal evidence",
+        "No 20-cycle evaluation run",
+        "No Xcode MCP UI-test pass",
+        "No legal/release approval"
+      ]
+    },
     {
       "id": "ernieImageTurbo",
       "family": "ERNIE-Image-Turbo",
-      "sourceRevision": "f23d470af1a57a64aa034d0770e74f99aac6135f",
-      "licenseSummary": "Apache-2.0 components per upstream model card; final legal approval required",
+      "reference": {
+        "owner": "jc-builds",
+        "repository": "ERNIE-Image-Turbo-iOS",
+        "commitSHA": "f23d470af1a57a64aa034d0770e74f99aac6135f",
+        "visibility": "public",
+        "gated": false
+      },
+      "license": "apache-2.0",
       "licenseApproved": true,
       "evaluationApproved": false,
       "minimumAvailableMemoryBytes": 7000000000,
       "minimumOSMajorVersion": 26,
       "supportedDeviceIdentifiers": [],
       "safetyPolicyVersion": "2026-07-14",
-      "profile": {"width": 1024, "height": 1024, "steps": 8, "cfgScale": 1.0},
+      "profile": {
+        "width": 1024,
+        "height": 1024,
+        "steps": 8,
+        "cfgScale": 1.0
+      },
       "qualityThresholds": {
         "status": "not-approved",
         "minimumSuccessfulRunsPerDevice": 20,
         "maximumCrashes": 0,
-        "maximumSensitiveOutputEscapes": 0
+        "maximumSensitiveOutputEscapes": 0,
+        "requiresPostAttemptUnloadEvidence": true
       },
       "files": [
-        {"name": "ernie-image-turbo-Q3_K_M.gguf", "bytes": 3909632704, "sha256": "3c1813fc1e0e904cc342e7b6791d0165e6dbb6aac30ad2924747b198bc435857"},
-        {"name": "ae.safetensors", "bytes": 168120878, "sha256": "ca70d2202afe6415bdbcb8793ba8cd99fd159cfe6192381504d6c4d3036e0f04"},
-        {"name": "Ministral-3-3B-Instruct-2512-Q4_K_M.gguf", "bytes": 2146497824, "sha256": "fd46fc371ff0509bfa8657ac956b7de8534d7d9baaa4947975c0648c3aa397f4"}
+        {
+          "name": "ernie-image-turbo-Q3_K_M.gguf",
+          "bytes": 3909632704,
+          "sha256": "3c1813fc1e0e904cc342e7b6791d0165e6dbb6aac30ad2924747b198bc435857"
+        },
+        {
+          "name": "ae.safetensors",
+          "bytes": 168120878,
+          "sha256": "ca70d2202afe6415bdbcb8793ba8cd99fd159cfe6192381504d6c4d3036e0f04"
+        },
+        {
+          "name": "Ministral-3-3B-Instruct-2512-Q4_K_M.gguf",
+          "bytes": 2146497824,
+          "sha256": "fd46fc371ff0509bfa8657ac956b7de8534d7d9baaa4947975c0648c3aa397f4"
+        }
       ],
       "releaseBlockers": [
-        "No eligible physical-device evaluation",
-        "No measured quality, demographic-bias, memory, energy, or thermal thresholds",
-        "Conflicting upstream supply-chain scanner result for the text encoder",
-        "No Xcode MCP build/test/launch evidence"
+        "No physical-device download, load, generation, unload, memory, energy, or thermal evidence",
+        "No 20-cycle evaluation run",
+        "No Xcode MCP UI-test pass",
+        "No legal/release approval"
+      ]
+    },
+    {
+      "id": "chroma1HD",
+      "family": "Chroma1-HD",
+      "reference": {
+        "owner": "jc-builds",
+        "repository": "Chroma1-HD-iOS",
+        "commitSHA": "722a672dca0d2ec5ff39dea561ae0df62bf49995",
+        "visibility": "public",
+        "gated": false
+      },
+      "license": "apache-2.0",
+      "licenseApproved": true,
+      "evaluationApproved": false,
+      "minimumAvailableMemoryBytes": 16000000000,
+      "minimumOSMajorVersion": 26,
+      "supportedDeviceIdentifiers": [],
+      "safetyPolicyVersion": "2026-07-14",
+      "profile": {
+        "width": 1024,
+        "height": 1024,
+        "steps": 28,
+        "cfgScale": 4.0
+      },
+      "qualityThresholds": {
+        "status": "not-approved",
+        "minimumSuccessfulRunsPerDevice": 20,
+        "maximumCrashes": 0,
+        "maximumSensitiveOutputEscapes": 0,
+        "requiresPostAttemptUnloadEvidence": true
+      },
+      "files": [
+        {
+          "name": "Chroma1-HD-Q4_K_S.gguf",
+          "bytes": 5432053920,
+          "sha256": "4443db48850a45bb7f163a0582ea0e9f9d449db1aa56632c8572515e8e83acc8"
+        },
+        {
+          "name": "ae.safetensors",
+          "bytes": 335304388,
+          "sha256": "afc8e28272cd15db3919bacdb6918ce9c1ed22e96cb12c4d5ed0fba823529e38"
+        },
+        {
+          "name": "t5xxl_fp16.safetensors",
+          "bytes": 9787841024,
+          "sha256": "6e480b09fae049a72d2a8c5fbccb8d3e92febeb233bbe9dfe7256958a9167635"
+        }
+      ],
+      "releaseBlockers": [
+        "No physical-device download, load, generation, unload, memory, energy, or thermal evidence",
+        "No 20-cycle evaluation run",
+        "No Xcode MCP UI-test pass",
+        "No legal/release approval"
       ]
     }
-  ],
-  "disabledFamilies": [
-    {"id": "stableDiffusion", "reason": "No reviewed artifact manifest"},
-    {"id": "sdxl", "reason": "No reviewed artifact manifest"},
-    {"id": "sd3", "reason": "No reviewed artifact manifest"},
-    {"id": "flux", "reason": "No reviewed artifact manifest"},
-    {"id": "chroma1HD", "reason": "Incomplete transitive license and artifact review"},
-    {"id": "qwenImage", "reason": "No reviewed artifact manifest"},
-    {"id": "zImageTurbo", "reason": "Incomplete transitive license and artifact review"}
   ]
 }

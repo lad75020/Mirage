@@ -27,8 +27,8 @@ public actor NativeMirageEngineDriver: MirageEngineDriving {
     }
 
     public func unload() async {
-        engine = nil
         Mirage.setProgressCallback(nil)
+        engine = nil
     }
 
     public func generate(
@@ -68,7 +68,8 @@ public actor NativeMirageEngineDriver: MirageEngineDriving {
 public actor MirageInferenceService: ImageGenerating {
     private let resolver: any ModelAvailabilityProviding
     private let driver: any MirageEngineDriving
-    private var loadedModelID: ModelID?
+    private var attemptInProgress = false
+    private var attemptWaiters: [CheckedContinuation<Void, Never>] = []
 
     public init(
         resolver: any ModelAvailabilityProviding,
@@ -83,50 +84,81 @@ public actor MirageInferenceService: ImageGenerating {
         descriptor: ModelDescriptor,
         progress: @escaping @Sendable (GenerationProgress) -> Void
     ) async throws -> GeneratedImage {
-        guard request.modelID == descriptor.id else {
-            throw ImageGenerationFailure.modelUnavailable
-        }
-        if Task.isCancelled { throw ImageGenerationFailure.cancelled }
+        await acquireAttempt()
+        defer { releaseAttempt() }
 
-        let files: ResolvedModelFiles
+        let outcome: Result<GeneratedImage, ImageGenerationFailure>
         do {
-            files = try await resolver.resolve(descriptor)
-        } catch {
-            throw ImageGenerationFailure.modelUnavailable
-        }
+            guard request.modelID == descriptor.id else {
+                throw ImageGenerationFailure.modelUnavailable
+            }
+            try Task.checkCancellation()
 
-        if loadedModelID != descriptor.id {
-            await driver.unload()
+            let files: ResolvedModelFiles
+            do {
+                files = try await resolver.resolve(descriptor)
+            } catch {
+                throw ImageGenerationFailure.modelUnavailable
+            }
+
             do {
                 try await driver.load(modelID: descriptor.id, files: files)
-                loadedModelID = descriptor.id
             } catch {
-                loadedModelID = nil
                 throw ImageGenerationFailure.modelLoadFailed
             }
+
+            let pngData: Data
+            do {
+                pngData = try await driver.generate(request: request, progress: progress)
+            } catch let failure as ImageGenerationFailure {
+                throw failure
+            } catch {
+                throw ImageGenerationFailure.generationFailed
+            }
+            try Task.checkCancellation()
+
+            guard let source = CGImageSourceCreateWithData(pngData as CFData, nil),
+                  let properties = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any],
+                  let width = properties[kCGImagePropertyPixelWidth] as? Int,
+                  let height = properties[kCGImagePropertyPixelHeight] as? Int else {
+                throw ImageGenerationFailure.invalidImage
+            }
+            outcome = .success(GeneratedImage(
+                requestID: request.id,
+                modelID: descriptor.id,
+                pngData: pngData,
+                width: width,
+                height: height
+            ))
+        } catch is CancellationError {
+            outcome = .failure(.cancelled)
+        } catch let failure as ImageGenerationFailure {
+            outcome = .failure(failure)
+        } catch {
+            outcome = .failure(.generationFailed)
         }
 
-        let pngData: Data
-        do {
-            pngData = try await driver.generate(request: request, progress: progress)
-        } catch let failure as ImageGenerationFailure {
-            throw failure
-        } catch {
-            throw ImageGenerationFailure.generationFailed
+        // Awaited teardown is the barrier that prevents this attempt from
+        // returning while the callback, Engine, or model memory remains live.
+        await driver.unload()
+        return try outcome.get()
+    }
+
+    private func acquireAttempt() async {
+        guard attemptInProgress else {
+            attemptInProgress = true
+            return
         }
-        if Task.isCancelled { throw ImageGenerationFailure.cancelled }
-        guard let source = CGImageSourceCreateWithData(pngData as CFData, nil),
-              let properties = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any],
-              let width = properties[kCGImagePropertyPixelWidth] as? Int,
-              let height = properties[kCGImagePropertyPixelHeight] as? Int else {
-            throw ImageGenerationFailure.invalidImage
+        await withCheckedContinuation { continuation in
+            attemptWaiters.append(continuation)
         }
-        return GeneratedImage(
-            requestID: request.id,
-            modelID: descriptor.id,
-            pngData: pngData,
-            width: width,
-            height: height
-        )
+    }
+
+    private func releaseAttempt() {
+        guard !attemptWaiters.isEmpty else {
+            attemptInProgress = false
+            return
+        }
+        attemptWaiters.removeFirst().resume()
     }
 }
