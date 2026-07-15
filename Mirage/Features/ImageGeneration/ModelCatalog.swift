@@ -146,13 +146,17 @@ public enum ModelCatalog {
         let custom = downloadedSnapshots
             .filter { !seen.contains($0.reference) }
             .map { snapshot in
-                ModelCatalogEntry(reference: snapshot.reference, descriptor: nil, snapshot: snapshot)
+                ModelCatalogEntry(
+                    reference: snapshot.reference,
+                    descriptor: snapshot.descriptor,
+                    snapshot: snapshot
+                )
             }
         return featured + custom
     }
 
     public static func compatibility(for snapshot: LocalModelSnapshot) -> ModelCompatibility {
-        guard let descriptor = descriptor(for: snapshot.reference),
+        guard let descriptor = snapshot.descriptor ?? descriptor(for: snapshot.reference),
               descriptor.reviewedRevisionSHA == snapshot.commitSHA,
               descriptor.licenseApproved,
               descriptor.evaluationApproved,

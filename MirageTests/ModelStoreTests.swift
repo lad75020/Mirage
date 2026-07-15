@@ -68,6 +68,55 @@ final class ModelStoreTests: XCTestCase {
         XCTAssertEqual(extra.first?.compatibility, .incompatible(reason: "Files changed in Files."))
     }
 
+    func testPersistsDownloadedCompositeDescriptorAcrossRefresh() async throws {
+        let reference = AdvancedModelComposer.compositeReference
+        let data = Data("composite".utf8)
+        let fileURL = URL(string: "https://huggingface.co/custom/PublicModel/resolve/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/model.gguf")!
+        let file = ModelDownloadFile(
+            path: "advanced/model.gguf",
+            sizeBytes: Int64(data.count),
+            sha256: data.sha256String,
+            downloadURL: fileURL
+        )
+        let profile = GenerationProfile(width: 512, height: 512, steps: 4, cfgScale: 1)
+        let descriptor = ModelDescriptor(
+            id: .advancedCustom,
+            repository: reference,
+            reviewedRevisionSHA: String(repeating: "a", count: 40),
+            familyName: "Advanced Custom Model",
+            summary: "Composite persistence fixture.",
+            packageVersion: ModelCatalog.packageVersion,
+            requirements: [
+                .init(role: .diffusionModel, fileName: file.path, expectedByteCount: file.sizeBytes, sha256: file.sha256),
+                .init(role: .vae, fileName: file.path, expectedByteCount: file.sizeBytes, sha256: file.sha256),
+                .init(role: .textEncoder, fileName: file.path, expectedByteCount: file.sizeBytes, sha256: file.sha256)
+            ],
+            profile: profile,
+            minimumAvailableMemoryBytes: 0,
+            licenseApproved: true,
+            evaluationApproved: true
+        )
+        let revision = try ResolvedModelRevision(
+            reference: reference,
+            commitSHA: descriptor.reviewedRevisionSHA!,
+            license: "apache-2.0",
+            totalSizeBytes: file.sizeBytes
+        )
+        let plan = ModelDownloadPlan(revision: revision, files: [file], descriptor: descriptor)
+        let store = try ModelStore(documentsURL: documents, availableSpaceProvider: { 10_000 })
+        let staging = try await store.stagingURL(for: reference)
+        let stagedFile = staging.appendingPathComponent(file.path)
+        try FileManager.default.createDirectory(at: stagedFile.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try data.write(to: stagedFile)
+
+        _ = try await store.promote(plan: plan, from: staging)
+        let refreshed = await store.refreshSnapshots().first
+
+        XCTAssertEqual(refreshed?.descriptor, descriptor)
+        XCTAssertEqual(refreshed?.compatibility, .compatible(profile: profile))
+        XCTAssertEqual(ModelCatalog.catalogEntries(downloadedSnapshots: refreshed.map { [$0] } ?? []).last?.descriptor, descriptor)
+    }
+
     func testRejectsLowStorageTraversalCaseCollisionExecutableArchiveAndSymlinkPayloads() async throws {
         let reference = try ModelRepositoryReference("custom/PublicModel")
         let store = try ModelStore(documentsURL: documents, availableSpaceProvider: { 1 })

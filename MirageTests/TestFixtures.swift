@@ -138,9 +138,13 @@ actor StubPhotoSaver: PhotoLibrarySaving {
 
 actor StubModelDownloader: ModelDownloading {
     var plan: ModelDownloadPlan?
+    var plansByReference: [ModelRepositoryReference: ModelDownloadPlan] = [:]
     var downloadedPlans: [ModelDownloadPlan] = []
+    var resolvedReferences: [ModelRepositoryReference] = []
 
     func resolve(reference: ModelRepositoryReference) async throws -> ModelDownloadPlan {
+        resolvedReferences.append(reference)
+        if let planned = plansByReference[reference] { return planned }
         if let plan { return plan }
         let revision = try ResolvedModelRevision(
             reference: reference,
@@ -162,6 +166,10 @@ actor StubModelDownloader: ModelDownloading {
 
     func setPlan(_ value: ModelDownloadPlan?) {
         plan = value
+    }
+
+    func setPlan(_ value: ModelDownloadPlan, for reference: ModelRepositoryReference) {
+        plansByReference[reference] = value
     }
 }
 
@@ -196,7 +204,8 @@ actor StubModelStore: ModelSnapshotStoring {
             folderURL: modelRootURL.appendingPathComponent(ModelStore.safeFolderName(for: plan.revision.reference)),
             files: plan.files,
             license: plan.revision.license,
-            compatibility: .unknownCustomRepository
+            compatibility: plan.descriptor.map { .compatible(profile: $0.profile) } ?? .unknownCustomRepository,
+            descriptor: plan.descriptor
         )
         snapshots.append(snapshot)
         return snapshot

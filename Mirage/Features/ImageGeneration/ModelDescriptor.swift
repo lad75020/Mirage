@@ -9,6 +9,7 @@ public enum ModelID: String, CaseIterable, Codable, Identifiable, Sendable {
     case qwenImage
     case ernieImageTurbo
     case zImageTurbo
+    case advancedCustom
 
     public var id: String { rawValue }
 
@@ -22,6 +23,7 @@ public enum ModelID: String, CaseIterable, Codable, Identifiable, Sendable {
         case .qwenImage: "Qwen-Image"
         case .ernieImageTurbo: "ERNIE-Image-Turbo"
         case .zImageTurbo: "Z-Image-Turbo"
+        case .advancedCustom: "Advanced Custom Model"
         }
     }
 }

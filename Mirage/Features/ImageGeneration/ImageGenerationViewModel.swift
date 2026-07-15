@@ -23,14 +23,25 @@ public final class ImageGenerationViewModel {
     public private(set) var downloadStates: [ModelRepositoryReference: ModelDownloadState] = [:]
     public private(set) var pendingDownloadPlan: ModelDownloadPlan?
     public private(set) var customReferenceError: String?
+    public private(set) var advancedModelError: String?
     public private(set) var activeDownloadReference: ModelRepositoryReference?
     public var customReferenceInput = "" {
         didSet { customReferenceError = nil }
     }
+    public var tokenizerReferenceInput = "" {
+        didSet { advancedModelError = nil }
+    }
+    public var transformerReferenceInput = "" {
+        didSet { advancedModelError = nil }
+    }
+    public var vaeReferenceInput = "" {
+        didSet { advancedModelError = nil }
+    }
 
-    public let catalog: [ModelDescriptor]
+    public private(set) var catalog: [ModelDescriptor]
     public let featuredReferences: [ModelRepositoryReference]
 
+    @ObservationIgnored private let baseCatalog: [ModelDescriptor]
     @ObservationIgnored private let availabilityProvider: any ModelAvailabilityProviding
     @ObservationIgnored private let generator: any ImageGenerating
     @ObservationIgnored private let safetyService: any ImageSafetyChecking
@@ -52,6 +63,7 @@ public final class ImageGenerationViewModel {
         downloader: (any ModelDownloading)? = nil,
         modelStore: (any ModelSnapshotStoring)? = nil
     ) {
+        self.baseCatalog = catalog
         self.catalog = catalog
         self.featuredReferences = ModelCatalog.featuredReferences
         self.availabilityProvider = availabilityProvider
@@ -84,6 +96,11 @@ public final class ImageGenerationViewModel {
         return !trimmed.isEmpty && trimmed.count <= 1_000
     }
 
+    public var canDownloadAdvancedModel: Bool {
+        !operationLocked && [tokenizerReferenceInput, transformerReferenceInput, vaeReferenceInput]
+            .allSatisfy { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+    }
+
     public var selectionLocked: Bool { operationLocked }
 
     public var operationLocked: Bool {
@@ -108,6 +125,7 @@ public final class ImageGenerationViewModel {
         state = .checkingModels
         if let modelStore {
             downloadedSnapshots = await modelStore.refreshSnapshots()
+            catalog = mergedCatalog(with: downloadedSnapshots)
             catalogEntries = ModelCatalog.catalogEntries(downloadedSnapshots: downloadedSnapshots)
             let currentReferences = Set(downloadedSnapshots.map(\.reference))
             for (reference, downloadState) in downloadStates where !currentReferences.contains(reference) {
@@ -172,6 +190,49 @@ public final class ImageGenerationViewModel {
             await requestDownload(for: reference)
         } catch {
             customReferenceError = "Enter a public Hugging Face model reference."
+        }
+    }
+
+    public func submitAdvancedModel() async {
+        guard canDownloadAdvancedModel, let downloader, let modelStore else { return }
+        let compositeReference = AdvancedModelComposer.compositeReference
+        activeDownloadReference = compositeReference
+        downloadStates[compositeReference] = .resolving(reference: compositeReference)
+        do {
+            let tokenizerReference = try ModelRepositoryReference(tokenizerReferenceInput)
+            let transformerReference = try ModelRepositoryReference(transformerReferenceInput)
+            let vaeReference = try ModelRepositoryReference(vaeReferenceInput)
+
+            async let tokenizerPlan = downloader.resolve(reference: tokenizerReference)
+            async let transformerPlan = downloader.resolve(reference: transformerReference)
+            async let vaePlan = downloader.resolve(reference: vaeReference)
+            let plan = try await AdvancedModelComposer.compose(
+                tokenizer: tokenizerPlan,
+                transformer: transformerPlan,
+                vae: vaePlan
+            )
+            try await modelStore.validateCanStore(plan: plan)
+            advancedModelError = nil
+            downloadTask = Task { [weak self] in
+                await self?.performConfirmedDownload(
+                    plan: plan,
+                    reference: compositeReference,
+                    downloader: downloader,
+                    modelStore: modelStore
+                )
+            }
+        } catch let error as AdvancedModelComposerError {
+            activeDownloadReference = nil
+            downloadStates[compositeReference] = .failed(reference: compositeReference, reason: .invalidReference)
+            advancedModelError = advancedModelMessage(for: error)
+        } catch is ModelRepositoryReferenceError {
+            activeDownloadReference = nil
+            downloadStates[compositeReference] = .failed(reference: compositeReference, reason: .invalidReference)
+            advancedModelError = "Enter three public Hugging Face references in owner/model_name format."
+        } catch {
+            activeDownloadReference = nil
+            downloadStates[compositeReference] = .failed(reference: compositeReference, reason: mapDownloadError(error))
+            advancedModelError = "The advanced model could not be prepared for download."
         }
     }
 
@@ -365,7 +426,9 @@ public final class ImageGenerationViewModel {
             downloadStates[reference] = .validating(reference: reference)
             let snapshot = try await modelStore.promote(plan: plan, from: staging)
             stagingURL = nil
+            downloadedSnapshots.removeAll { $0.reference == snapshot.reference }
             downloadedSnapshots.append(snapshot)
+            catalog = mergedCatalog(with: downloadedSnapshots)
             catalogEntries = ModelCatalog.catalogEntries(downloadedSnapshots: downloadedSnapshots)
             downloadStates[reference] = .downloaded(snapshot)
             downloadTask = nil
@@ -384,6 +447,23 @@ public final class ImageGenerationViewModel {
         }
         downloadTask = nil
         activeDownloadReference = nil
+    }
+
+    private func mergedCatalog(with snapshots: [LocalModelSnapshot]) -> [ModelDescriptor] {
+        var seen = Set(baseCatalog.map(\.id))
+        let downloadedDescriptors = snapshots.compactMap(\.descriptor).filter { seen.insert($0.id).inserted }
+        return baseCatalog + downloadedDescriptors
+    }
+
+    private func advancedModelMessage(for error: AdvancedModelComposerError) -> String {
+        switch error {
+        case .missingModelFile(let label):
+            return "\(label) does not contain a supported model weight file."
+        case .ambiguousRepository(let label):
+            return "\(label) contains multiple model weight files. Use a repository with exactly one."
+        case .incompatibleModelFile(let label):
+            return "\(label) is missing immutable integrity metadata."
+        }
     }
 
     private func downloadedSnapshot(for reference: ModelRepositoryReference) -> LocalModelSnapshot? {

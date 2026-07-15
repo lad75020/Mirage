@@ -4,6 +4,7 @@ import SwiftUI
 struct ImageGenerationModelSettingsView: View {
     @Bindable var viewModel: ImageGenerationViewModel
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var isAdvancedExpanded = false
 
     var body: some View {
         ScrollView {
@@ -11,6 +12,7 @@ struct ImageGenerationModelSettingsView: View {
                 selectionSummary
                 featuredModelsSection
                 customReferenceSection
+                advancedModelSection
                 downloadedModelsSection
             }
             .frame(maxWidth: 760)
@@ -185,6 +187,75 @@ struct ImageGenerationModelSettingsView: View {
         }
     }
 
+    private var advancedModelSection: some View {
+        settingsCard {
+            DisclosureGroup(isExpanded: $isAdvancedExpanded) {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Compose one model from three public Hugging Face repositories. Each repository must contain exactly one supported weight file.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+
+                    advancedReferenceField("Tokenizer", text: $viewModel.tokenizerReferenceInput)
+                    advancedReferenceField("Transformer", text: $viewModel.transformerReferenceInput)
+                    advancedReferenceField("VAE", text: $viewModel.vaeReferenceInput)
+
+                    advancedDownloadAction
+
+                    if case .downloading(_, let progress) = viewModel.downloadState(for: AdvancedModelComposer.compositeReference) {
+                        ProgressView(value: progress.fractionCompleted ?? 0)
+                            .accessibilityIdentifier("Advanced model progress")
+                    }
+                    if let error = viewModel.advancedModelError {
+                        Text(error)
+                            .font(.footnote)
+                            .foregroundStyle(.red)
+                            .accessibilityIdentifier("Advanced model error")
+                    }
+                }
+                .padding(.top, 12)
+            } label: {
+                Label("ADVANCED", systemImage: "slider.horizontal.3")
+                    .font(.headline)
+                    .accessibilityIdentifier("Advanced model section")
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var advancedDownloadAction: some View {
+        switch viewModel.downloadState(for: AdvancedModelComposer.compositeReference) {
+        case .resolving:
+            ProgressView()
+                .accessibilityLabel("Resolving advanced model")
+        case .downloading, .validating:
+            Button("Cancel", systemImage: "xmark.circle") {
+                viewModel.cancelDownload()
+            }
+            .buttonStyle(.bordered)
+            .accessibilityIdentifier("Cancel advanced model")
+        default:
+            if viewModel.canDownloadAdvancedModel {
+                Button("Download", systemImage: "arrow.down.circle") {
+                    Task { await viewModel.submitAdvancedModel() }
+                }
+                .buttonStyle(.borderedProminent)
+                .accessibilityIdentifier("Download advanced model")
+            }
+        }
+    }
+
+    private func advancedReferenceField(_ title: String, text: Binding<String>) -> some View {
+        VStack(alignment: .leading, spacing: 5) {
+            Text(title)
+                .font(.subheadline.weight(.semibold))
+            TextField("owner/model_name", text: text)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+                .textFieldStyle(.roundedBorder)
+                .accessibilityIdentifier("Advanced \(title)")
+        }
+    }
+
     private var downloadedModelsSection: some View {
         settingsCard {
             VStack(alignment: .leading, spacing: 10) {
@@ -213,7 +284,7 @@ struct ImageGenerationModelSettingsView: View {
         return VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .top, spacing: 12) {
                 VStack(alignment: .leading, spacing: 3) {
-                    Text(snapshot.reference.id)
+                    Text(entry.descriptor?.familyName ?? snapshot.reference.id)
                         .font(.body.weight(.semibold))
                     Text(compatibilityText(snapshot.compatibility))
                         .font(.caption)

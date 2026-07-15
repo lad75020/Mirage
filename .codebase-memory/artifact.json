@@ -1,11 +1,11 @@
 {
     "schema_version": 1,
-    "commit": "cd0492b83cb88f8e9c94d31e33bfec82aebe52e6",
-    "indexed_at": "2026-07-14T02:25:25Z",
+    "commit": "398ea8e3bf375213d74cf9dd82f7e3f57ab97c0d",
+    "indexed_at": "2026-07-15T18:09:48Z",
     "project": "Volumes-WDBlack4TB-Code-Mirage",
-    "nodes": 1316,
-    "edges": 2392,
-    "original_size": 2752512,
-    "compressed_size": 375258,
-    "compression_level": 9
+    "nodes": 1736,
+    "edges": 3604,
+    "original_size": 5505024,
+    "compressed_size": 742450,
+    "compression_level": 3
 }

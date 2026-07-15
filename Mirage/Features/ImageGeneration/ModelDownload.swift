@@ -32,10 +32,16 @@ public struct ModelDownloadFile: Equatable, Codable, Sendable {
 public struct ModelDownloadPlan: Equatable, Codable, Sendable {
     public let revision: ResolvedModelRevision
     public let files: [ModelDownloadFile]
+    public let descriptor: ModelDescriptor?
 
-    public init(revision: ResolvedModelRevision, files: [ModelDownloadFile]) {
+    public init(
+        revision: ResolvedModelRevision,
+        files: [ModelDownloadFile],
+        descriptor: ModelDescriptor? = nil
+    ) {
         self.revision = revision
         self.files = files
+        self.descriptor = descriptor
     }
 
     public var expectedSizeBytes: Int64 {
@@ -83,6 +89,7 @@ public struct LocalModelSnapshot: Identifiable, Equatable, Codable, Sendable {
     public let files: [ModelDownloadFile]
     public let license: String?
     public let compatibility: ModelCompatibility
+    public let descriptor: ModelDescriptor?
 
     public init(
         reference: ModelRepositoryReference,
@@ -91,7 +98,8 @@ public struct LocalModelSnapshot: Identifiable, Equatable, Codable, Sendable {
         folderURL: URL,
         files: [ModelDownloadFile],
         license: String?,
-        compatibility: ModelCompatibility
+        compatibility: ModelCompatibility,
+        descriptor: ModelDescriptor? = nil
     ) {
         self.reference = reference
         self.commitSHA = commitSHA.lowercased()
@@ -100,6 +108,7 @@ public struct LocalModelSnapshot: Identifiable, Equatable, Codable, Sendable {
         self.files = files
         self.license = license?.lowercased()
         self.compatibility = compatibility
+        self.descriptor = descriptor
         self.id = "\(reference.id)@\(commitSHA.lowercased())"
     }
 }

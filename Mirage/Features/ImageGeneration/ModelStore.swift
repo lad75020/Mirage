@@ -104,24 +104,25 @@ public actor ModelStore: ModelSnapshotStoring {
             try setProtection(on: destination, recursive: true)
             try validate(folderURL: destination, files: plan.files, allowMetadata: true)
             try? fileManager.removeItem(at: stagingURL)
-            return LocalModelSnapshot(
+            let provisionalSnapshot = LocalModelSnapshot(
                 reference: plan.revision.reference,
                 commitSHA: plan.revision.commitSHA,
                 folderName: folder,
                 folderURL: destination,
                 files: plan.files,
                 license: plan.revision.license,
-                compatibility: ModelCatalog.compatibility(
-                    for: .init(
-                        reference: plan.revision.reference,
-                        commitSHA: plan.revision.commitSHA,
-                        folderName: folder,
-                        folderURL: destination,
-                        files: plan.files,
-                        license: plan.revision.license,
-                        compatibility: .unknownCustomRepository
-                    )
-                )
+                compatibility: .unknownCustomRepository,
+                descriptor: plan.descriptor
+            )
+            return LocalModelSnapshot(
+                reference: provisionalSnapshot.reference,
+                commitSHA: provisionalSnapshot.commitSHA,
+                folderName: provisionalSnapshot.folderName,
+                folderURL: provisionalSnapshot.folderURL,
+                files: provisionalSnapshot.files,
+                license: provisionalSnapshot.license,
+                compatibility: ModelCatalog.compatibility(for: provisionalSnapshot),
+                descriptor: provisionalSnapshot.descriptor
             )
         } catch {
             try? fileManager.removeItem(at: replacement)
@@ -153,7 +154,8 @@ public actor ModelStore: ModelSnapshotStoring {
                 folderURL: folder,
                 files: metadata.files,
                 license: metadata.license,
-                compatibility: .unknownCustomRepository
+                compatibility: .unknownCustomRepository,
+                descriptor: metadata.descriptor
             )
             guard (try? validate(folderURL: folder, files: metadata.files, allowMetadata: true)) != nil else {
                 return LocalModelSnapshot(
@@ -163,7 +165,8 @@ public actor ModelStore: ModelSnapshotStoring {
                     folderURL: folder,
                     files: metadata.files,
                     license: metadata.license,
-                    compatibility: .incompatible(reason: "Files changed in Files.")
+                    compatibility: .incompatible(reason: "Files changed in Files."),
+                    descriptor: metadata.descriptor
                 )
             }
             return LocalModelSnapshot(
@@ -173,7 +176,8 @@ public actor ModelStore: ModelSnapshotStoring {
                 folderURL: snapshot.folderURL,
                 files: snapshot.files,
                 license: snapshot.license,
-                compatibility: ModelCatalog.compatibility(for: snapshot)
+                compatibility: ModelCatalog.compatibility(for: snapshot),
+                descriptor: snapshot.descriptor
             )
         }
     }
@@ -376,7 +380,8 @@ public actor ModelStore: ModelSnapshotStoring {
             commitSHA: plan.revision.commitSHA,
             folderName: folderName,
             license: plan.revision.license,
-            files: plan.files
+            files: plan.files,
+            descriptor: plan.descriptor
         )
         let data = try JSONEncoder().encode(metadata)
         let url = root.appendingPathComponent(".mirage-snapshot.json")
@@ -425,4 +430,5 @@ private struct SnapshotMetadata: Codable {
     let folderName: String
     let license: String?
     let files: [ModelDownloadFile]
+    let descriptor: ModelDescriptor?
 }

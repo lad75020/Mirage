@@ -21,6 +21,8 @@
 		4B453CE4328B7444787DBF4A /* ImageGenerationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 379D4AA64B8FF6F3A678FA9C /* ImageGenerationView.swift */; };
 		4CA455E3CF5FB4A86892CCF7 /* Mirage in Frameworks */ = {isa = PBXBuildFile; productRef = E64E2B68AEB79CFB9B9383AA /* Mirage */; };
 		4D1C271D3007F504008ACB12 /* ImageGenerationModelSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D1C271C3007F504008ACB12 /* ImageGenerationModelSettingsView.swift */; };
+		4D1C271F300800E6008ACB12 /* AdvancedCompositeModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D1C271E300800E6008ACB12 /* AdvancedCompositeModelTests.swift */; };
+		4D1C27213008012F008ACB12 /* AdvancedModelComposer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D1C27203008012F008ACB12 /* AdvancedModelComposer.swift */; };
 		5266907581BA72BAE7B45184 /* ImageSafetyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3631E6F88407167DDD1E3228 /* ImageSafetyService.swift */; };
 		54036E32E9D0D91D5DBC38DC /* ModelAvailability+Presentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5279DD4B0CA093EF66AAB0E5 /* ModelAvailability+Presentation.swift */; };
 		5E55D57A23677F8C6CAD176E /* PromptSafetyEvaluationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AC10C704A8566DFD8C39DB2 /* PromptSafetyEvaluationTests.swift */; };
@@ -99,6 +101,8 @@
 		4AC10C704A8566DFD8C39DB2 /* PromptSafetyEvaluationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PromptSafetyEvaluationTests.swift; sourceTree = "<group>"; };
 		4B65B1A1A9CE593CA0CD6636 /* ImageGenerationJourneyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageGenerationJourneyTests.swift; sourceTree = "<group>"; };
 		4D1C271C3007F504008ACB12 /* ImageGenerationModelSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageGenerationModelSettingsView.swift; sourceTree = "<group>"; };
+		4D1C271E300800E6008ACB12 /* AdvancedCompositeModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdvancedCompositeModelTests.swift; sourceTree = "<group>"; };
+		4D1C27203008012F008ACB12 /* AdvancedModelComposer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdvancedModelComposer.swift; sourceTree = "<group>"; };
 		5279DD4B0CA093EF66AAB0E5 /* ModelAvailability+Presentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ModelAvailability+Presentation.swift"; sourceTree = "<group>"; };
 		5299B5067A5BD317C5C61611 /* ImageGenerationViewModelModelSelectionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageGenerationViewModelModelSelectionTests.swift; sourceTree = "<group>"; };
 		5CED3A2A740D98E9D8719B67 /* MirageInferenceServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MirageInferenceServiceTests.swift; sourceTree = "<group>"; };
@@ -184,6 +188,7 @@
 				DCC250F965D3EE1C79305148 /* ModelStoreTests.swift */,
 				D14933C9BA42DAA7B9595CF3 /* PhotoLibrarySaverTests.swift */,
 				192DCC911B7C2A49CD668980 /* TestFixtures.swift */,
+				4D1C271E300800E6008ACB12 /* AdvancedCompositeModelTests.swift */,
 			);
 			path = MirageTests;
 			sourceTree = "<group>";
@@ -241,6 +246,7 @@
 				74A7FA05553F7BB8C771AD8D /* PhotoLibrarySaver.swift */,
 				1E181A9190519D628BF2DDDF /* PreviewDependencies.swift */,
 				4D1C271C3007F504008ACB12 /* ImageGenerationModelSettingsView.swift */,
+				4D1C27203008012F008ACB12 /* AdvancedModelComposer.swift */,
 			);
 			path = ImageGeneration;
 			sourceTree = "<group>";
@@ -404,6 +410,7 @@
 				ED3AE59816D1BB0242157CB5 /* ContentView.swift in Sources */,
 				FB74432ABFAB3A18D96A21CC /* DeviceCapabilityProvider.swift in Sources */,
 				A0304ED376937C8156DB9E29 /* HuggingFaceModelDownloader.swift in Sources */,
+				4D1C27213008012F008ACB12 /* AdvancedModelComposer.swift in Sources */,
 				EEE5A006678E7B0905167471 /* ImageGenerationDependencies.swift in Sources */,
 				19EF5401C8BC607589C75AE9 /* ImageGenerationState.swift in Sources */,
 				4B453CE4328B7444787DBF4A /* ImageGenerationView.swift in Sources */,
@@ -452,6 +459,7 @@
 				992812755DDC82A0EA89B9BE /* ModelAssetSecurityTests.swift in Sources */,
 				29EC149F88D833DBA1CC58C5 /* ModelCatalogTests.swift in Sources */,
 				34A28791D3248E816EFCAD82 /* ModelEvaluationTests.swift in Sources */,
+				4D1C271F300800E6008ACB12 /* AdvancedCompositeModelTests.swift in Sources */,
 				7D840E0035B28ED497CC7AAA /* ModelFileResolverTests.swift in Sources */,
 				FE6F8D6CF5298F63EAB7F3C7 /* ModelRepositoryReferenceTests.swift in Sources */,
 				6C307525C617311DE37872C6 /* ModelStoreTests.swift in Sources */,
