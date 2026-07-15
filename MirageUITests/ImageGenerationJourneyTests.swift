@@ -1,5 +1,6 @@
 import XCTest
 
+@MainActor
 final class ImageGenerationJourneyTests: XCTestCase {
     private var app: XCUIApplication!
 
@@ -11,11 +12,17 @@ final class ImageGenerationJourneyTests: XCTestCase {
         app.launch()
     }
 
-    func testSinglePageExposesModelPromptAndSendControls() {
-        XCTAssertTrue(app.staticTexts["Selected model"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.staticTexts["Files location"].exists)
+    func testMainPageKeepsModelManagementInSettings() {
+        XCTAssertTrue(app.buttons["Model settings"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.textViews["Image prompt"].exists)
         XCTAssertTrue(app.buttons["SEND"].exists)
+        XCTAssertFalse(app.staticTexts["Files location"].exists)
+        XCTAssertFalse(app.buttons["Download jc-builds/Z-Image-Turbo-iOS"].exists)
+
+        openModelSettings()
+
+        XCTAssertTrue(app.staticTexts["Selected model"].exists)
+        XCTAssertTrue(app.staticTexts["Files location"].exists)
     }
 
     func testResultAppearsAbovePromptAfterGeneration() {
@@ -57,6 +64,7 @@ final class ImageGenerationJourneyTests: XCTestCase {
     }
 
     func testFeaturedSourcesAreExactAndOrdered() {
+        openModelSettings()
         for reference in [
             "jc-builds/Z-Image-Turbo-iOS",
             "jc-builds/ERNIE-Image-Turbo-iOS",
@@ -114,6 +122,7 @@ final class ImageGenerationJourneyTests: XCTestCase {
     }
 
     func testDownloadConfirmationCustomAndRetryControlsAreDeterministic() {
+        openModelSettings()
         let featuredDownload = app.buttons["Download jc-builds/Z-Image-Turbo-iOS"]
         XCTAssertTrue(featuredDownload.waitForExistence(timeout: 5))
         XCTAssertTrue(waitUntilEnabled(featuredDownload))
@@ -138,6 +147,7 @@ final class ImageGenerationJourneyTests: XCTestCase {
 
     func testDownloadFailureOffersRetry() {
         launch(with: ["--ui-test-download-failure"])
+        openModelSettings()
         let download = app.buttons["Download jc-builds/Z-Image-Turbo-iOS"]
         XCTAssertTrue(download.waitForExistence(timeout: 5))
         XCTAssertTrue(waitUntilEnabled(download))
@@ -147,6 +157,7 @@ final class ImageGenerationJourneyTests: XCTestCase {
 
     func testConfirmedSlowDownloadShowsProgressAndCancels() {
         launch(with: ["--ui-test-slow-download"])
+        openModelSettings()
         let download = app.buttons["Download jc-builds/Z-Image-Turbo-iOS"]
         XCTAssertTrue(download.waitForExistence(timeout: 5))
         XCTAssertTrue(waitUntilEnabled(download))
@@ -176,11 +187,28 @@ final class ImageGenerationJourneyTests: XCTestCase {
         app.buttons["SEND"].tap()
     }
 
+    private func openModelSettings() {
+        if app.navigationBars["Model Settings"].exists { return }
+        let settings = app.buttons["Model settings"]
+        XCTAssertTrue(settings.waitForExistence(timeout: 5))
+        settings.tap()
+        XCTAssertTrue(app.navigationBars["Model Settings"].waitForExistence(timeout: 3))
+    }
+
+    private func returnToGenerator() {
+        let back = app.navigationBars["Model Settings"].buttons.firstMatch
+        XCTAssertTrue(back.exists)
+        back.tap()
+        XCTAssertTrue(app.textViews["Image prompt"].waitForExistence(timeout: 3))
+    }
+
     private func selectDefaultModel() {
+        openModelSettings()
         let select = app.buttons["Select jc-builds/ERNIE-Image-Turbo-iOS"]
         XCTAssertTrue(select.waitForExistence(timeout: 5))
         select.tap()
         XCTAssertTrue(app.staticTexts["Selected jc-builds/ERNIE-Image-Turbo-iOS"].waitForExistence(timeout: 3))
+        returnToGenerator()
     }
 
     private func waitUntilEnabled(_ element: XCUIElement, timeout: TimeInterval = 5) -> Bool {

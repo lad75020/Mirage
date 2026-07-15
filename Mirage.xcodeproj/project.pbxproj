@@ -20,6 +20,7 @@
 		4ACA286E7D579E3322AEDF4C /* MirageInferenceServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CED3A2A740D98E9D8719B67 /* MirageInferenceServiceTests.swift */; };
 		4B453CE4328B7444787DBF4A /* ImageGenerationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 379D4AA64B8FF6F3A678FA9C /* ImageGenerationView.swift */; };
 		4CA455E3CF5FB4A86892CCF7 /* Mirage in Frameworks */ = {isa = PBXBuildFile; productRef = E64E2B68AEB79CFB9B9383AA /* Mirage */; };
+		4D1C271D3007F504008ACB12 /* ImageGenerationModelSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D1C271C3007F504008ACB12 /* ImageGenerationModelSettingsView.swift */; };
 		5266907581BA72BAE7B45184 /* ImageSafetyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3631E6F88407167DDD1E3228 /* ImageSafetyService.swift */; };
 		54036E32E9D0D91D5DBC38DC /* ModelAvailability+Presentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5279DD4B0CA093EF66AAB0E5 /* ModelAvailability+Presentation.swift */; };
 		5E55D57A23677F8C6CAD176E /* PromptSafetyEvaluationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AC10C704A8566DFD8C39DB2 /* PromptSafetyEvaluationTests.swift */; };
@@ -97,6 +98,7 @@
 		4AA5F0F1EDC25DF50CA983C0 /* ImageGenerationStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageGenerationStateTests.swift; sourceTree = "<group>"; };
 		4AC10C704A8566DFD8C39DB2 /* PromptSafetyEvaluationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PromptSafetyEvaluationTests.swift; sourceTree = "<group>"; };
 		4B65B1A1A9CE593CA0CD6636 /* ImageGenerationJourneyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageGenerationJourneyTests.swift; sourceTree = "<group>"; };
+		4D1C271C3007F504008ACB12 /* ImageGenerationModelSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageGenerationModelSettingsView.swift; sourceTree = "<group>"; };
 		5279DD4B0CA093EF66AAB0E5 /* ModelAvailability+Presentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ModelAvailability+Presentation.swift"; sourceTree = "<group>"; };
 		5299B5067A5BD317C5C61611 /* ImageGenerationViewModelModelSelectionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageGenerationViewModelModelSelectionTests.swift; sourceTree = "<group>"; };
 		5CED3A2A740D98E9D8719B67 /* MirageInferenceServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MirageInferenceServiceTests.swift; sourceTree = "<group>"; };
@@ -238,6 +240,7 @@
 				DF50A52E436A18BB3C6C8525 /* ModelStore.swift */,
 				74A7FA05553F7BB8C771AD8D /* PhotoLibrarySaver.swift */,
 				1E181A9190519D628BF2DDDF /* PreviewDependencies.swift */,
+				4D1C271C3007F504008ACB12 /* ImageGenerationModelSettingsView.swift */,
 			);
 			path = ImageGeneration;
 			sourceTree = "<group>";
@@ -418,6 +421,7 @@
 				9E3033E35286C162C0895CAD /* ModelStore.swift in Sources */,
 				2AE01BEF2F8ACAB824245FEB /* PhotoLibrarySaver.swift in Sources */,
 				035B572F5F000279A746A36D /* PreviewDependencies.swift in Sources */,
+				4D1C271D3007F504008ACB12 /* ImageGenerationModelSettingsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
