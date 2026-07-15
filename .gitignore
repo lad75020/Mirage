@@ -23,3 +23,6 @@ MirageModels/
 .hermes/
 /.specify
 /.specify
+/.codebase-memory
+.codebase-memory/artifact.json
+.codebase-memory/graph.db.zst
