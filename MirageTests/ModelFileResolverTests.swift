@@ -39,6 +39,37 @@ final class ModelFileResolverTests: XCTestCase {
         XCTAssertEqual(files.diffusionModel.standardizedFileURL, modelURL.standardizedFileURL)
     }
 
+    func testFastAvailabilityRehashesWhenAFileSignatureChanges() async throws {
+        let original = Data("model".utf8)
+        let changed = Data("wrong".utf8)
+        let modelRoot = root.appendingPathComponent(ModelID.ernieImageTurbo.rawValue, isDirectory: true)
+        try FileManager.default.createDirectory(at: modelRoot, withIntermediateDirectories: true)
+        let modelURL = modelRoot.appendingPathComponent("model.gguf")
+        try original.write(to: modelURL)
+        try FileManager.default.setAttributes([.modificationDate: Date(timeIntervalSince1970: 1_000)], ofItemAtPath: modelURL.path)
+        let descriptor = ModelDescriptor.testFixture(requirements: [
+            .init(
+                role: .diffusionModel,
+                fileName: "model.gguf",
+                expectedByteCount: Int64(original.count),
+                sha256: original.sha256String
+            )
+        ])
+        let resolver = try ModelFileResolver(
+            rootURL: root,
+            memoryProvider: FixedMemoryProvider(bytes: .max),
+            protectedDataProvider: FixedProtectedDataProvider(available: true)
+        )
+
+        let initiallyAvailable = await resolver.availability(for: descriptor, revalidateFiles: false)
+        XCTAssertEqual(initiallyAvailable, .available)
+        try changed.write(to: modelURL)
+        try FileManager.default.setAttributes([.modificationDate: Date(timeIntervalSince1970: 2_000)], ofItemAtPath: modelURL.path)
+
+        let changedAvailability = await resolver.availability(for: descriptor, revalidateFiles: false)
+        XCTAssertEqual(changedAvailability, .integrityFailed("model.gguf"))
+    }
+
     func testRejectsTraversalOutsideModelRoot() async throws {
         let descriptor = ModelDescriptor.testFixture(
             requirements: [

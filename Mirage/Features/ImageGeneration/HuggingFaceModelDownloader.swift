@@ -13,40 +13,280 @@ public struct HFHTTPResponse: Sendable {
     }
 }
 
-public struct HFDownloadResponse: Sendable {
-    public let finalURL: URL
-    public let statusCode: Int
-    public let bytesWritten: Int64
+public protocol HFHTTPTransport: Sendable {
+    func metadata(from url: URL, maxBytes: Int) async throws -> HFHTTPResponse
+}
 
-    public init(finalURL: URL, statusCode: Int, bytesWritten: Int64) {
-        self.finalURL = finalURL
-        self.statusCode = statusCode
-        self.bytesWritten = bytesWritten
+public protocol HFHubFileDownloading: Sendable {
+    func downloadFile(
+        reference: ModelRepositoryReference,
+        revision: String,
+        path: String,
+        to destinationURL: URL,
+        progress: Progress
+    ) async throws -> URL
+}
+
+/// Production file transport using an app-owned streaming URLSession delegate.
+///
+/// swift-huggingface 0.9.0 uses `URLSession.download(for:delegate:)` on Apple
+/// platforms, where its per-task delegate does not own the completion lifecycle.
+/// That upstream behavior leaves progress at zero and can lose the temporary file.
+/// Keeping the delegate here lets Mirage persist each chunk before acknowledging it.
+public final class URLSessionHFFileDownloader: NSObject, HFHubFileDownloading, @unchecked Sendable {
+    private let state = URLSessionFileDownloadState()
+    private let session: URLSession
+
+    public override convenience init() {
+        self.init(configuration: .default)
+    }
+
+    public init(configuration: URLSessionConfiguration) {
+        let safeConfiguration = configuration.copy() as! URLSessionConfiguration
+        safeConfiguration.httpShouldSetCookies = false
+        safeConfiguration.httpCookieAcceptPolicy = .never
+        safeConfiguration.timeoutIntervalForRequest = max(safeConfiguration.timeoutIntervalForRequest, 60)
+        safeConfiguration.timeoutIntervalForResource = max(safeConfiguration.timeoutIntervalForResource, 24 * 60 * 60)
+        let delegate = URLSessionFileDownloadDelegate(state: state)
+        self.session = URLSession(configuration: safeConfiguration, delegate: delegate, delegateQueue: nil)
+        super.init()
+    }
+
+    public func downloadFile(
+        reference: ModelRepositoryReference,
+        revision: String,
+        path: String,
+        to destinationURL: URL,
+        progress: Progress
+    ) async throws -> URL {
+        guard revision.count == 40, revision.allSatisfy(\.isHexDigit) else {
+            throw ModelDownloadError.immutableRevisionMissing
+        }
+        let sourceURL = URL(string: "https://huggingface.co")!
+            .appendingPathComponent(reference.owner)
+            .appendingPathComponent(reference.repository)
+            .appendingPathComponent("resolve")
+            .appendingPathComponent(revision)
+            .appendingPathComponent(path)
+        try HuggingFaceModelDownloader.validateRequestURL(sourceURL)
+
+        return try await withTaskCancellationHandler {
+            try await withCheckedThrowingContinuation { continuation in
+                do {
+                    var request = URLRequest(url: sourceURL)
+                    request.cachePolicy = .reloadIgnoringLocalCacheData
+                    let task = session.dataTask(with: request)
+                    try state.register(
+                        continuation: continuation,
+                        task: task,
+                        destinationURL: destinationURL,
+                        progress: progress
+                    )
+                    if Task.isCancelled {
+                        state.cancel(destinationURL: destinationURL)
+                    } else {
+                        task.resume()
+                    }
+                } catch {
+                    continuation.resume(throwing: error)
+                }
+            }
+        } onCancel: {
+            self.state.cancel(destinationURL: destinationURL)
+        }
     }
 }
 
-public protocol HFHTTPTransport: Sendable {
-    func metadata(from url: URL, maxBytes: Int) async throws -> HFHTTPResponse
-    func download(
-        from url: URL,
-        to destinationURL: URL,
-        expectedBytes: Int64,
-        progress: @escaping @Sendable (Int64) -> Void
-    ) async throws -> HFDownloadResponse
+/// Compatibility name retained for callers created before the progress fix.
+public typealias SwiftHuggingFaceFileDownloader = URLSessionHFFileDownloader
+
+private final class URLSessionFileDownloadDelegate: NSObject, URLSessionDataDelegate, @unchecked Sendable {
+    private let state: URLSessionFileDownloadState
+
+    init(state: URLSessionFileDownloadState) {
+        self.state = state
+    }
+
+    func urlSession(
+        _: URLSession,
+        task: URLSessionTask,
+        willPerformHTTPRedirection _: HTTPURLResponse,
+        newRequest request: URLRequest,
+        completionHandler: @escaping (URLRequest?) -> Void
+    ) {
+        guard let currentURL = task.currentRequest?.url,
+              let targetURL = request.url,
+              HuggingFaceModelDownloader.validateRedirect(from: currentURL, to: targetURL) else {
+            state.fail(task, error: ModelDownloadError.redirectNotAllowed)
+            completionHandler(nil)
+            task.cancel()
+            return
+        }
+        completionHandler(request)
+    }
+
+    func urlSession(
+        _: URLSession,
+        task: URLSessionTask,
+        didReceive challenge: URLAuthenticationChallenge,
+        completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void
+    ) {
+        if challenge.protectionSpace.authenticationMethod == NSURLAuthenticationMethodServerTrust {
+            completionHandler(.performDefaultHandling, nil)
+        } else {
+            completionHandler(.rejectProtectionSpace, nil)
+        }
+    }
+
+    func urlSession(
+        _: URLSession,
+        dataTask: URLSessionDataTask,
+        didReceive response: URLResponse,
+        completionHandler: @escaping (URLSession.ResponseDisposition) -> Void
+    ) {
+        guard let http = response as? HTTPURLResponse,
+              (200..<300).contains(http.statusCode) else {
+            state.fail(dataTask, error: ModelDownloadError.transportFailed)
+            completionHandler(.cancel)
+            return
+        }
+        state.receiveResponse(dataTask)
+        completionHandler(.allow)
+    }
+
+    func urlSession(_: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
+        if let error = state.append(dataTask, data: data) {
+            state.fail(dataTask, error: error)
+            dataTask.cancel()
+        }
+    }
+
+    func urlSession(_: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
+        state.complete(task, error: error)
+    }
 }
 
+final class URLSessionFileDownloadState: @unchecked Sendable {
+    private let lock = NSLock()
+    private var requests: [Int: RequestState] = [:]
+    private var taskIDsByDestination: [URL: Int] = [:]
+
+    func register(
+        continuation: CheckedContinuation<URL, Error>,
+        task: URLSessionDataTask,
+        destinationURL: URL,
+        progress: Progress
+    ) throws {
+        try FileManager.default.createDirectory(
+            at: destinationURL.deletingLastPathComponent(),
+            withIntermediateDirectories: true
+        )
+        try? FileManager.default.removeItem(at: destinationURL)
+        guard FileManager.default.createFile(atPath: destinationURL.path, contents: nil) else {
+            throw ModelDownloadError.fileSystemFailure
+        }
+        let handle = try FileHandle(forWritingTo: destinationURL)
+        lock.withLock {
+            requests[task.taskIdentifier] = RequestState(
+                continuation: continuation,
+                task: task,
+                destinationURL: destinationURL,
+                handle: handle,
+                progress: progress
+            )
+            taskIDsByDestination[destinationURL] = task.taskIdentifier
+        }
+    }
+
+    func receiveResponse(_ task: URLSessionDataTask) {
+        lock.withLock {
+            requests[task.taskIdentifier]?.receivedResponse = true
+        }
+    }
+
+    func append(_ task: URLSessionDataTask, data: Data) -> Error? {
+        lock.withLock {
+            guard var request = requests[task.taskIdentifier] else { return nil }
+            do {
+                try request.handle.write(contentsOf: data)
+                request.receivedBytes += Int64(data.count)
+                request.progress.completedUnitCount = request.receivedBytes
+                requests[task.taskIdentifier] = request
+                return nil
+            } catch {
+                return error
+            }
+        }
+    }
+
+    func complete(_ task: URLSessionTask, error: Error?) {
+        guard let request = take(task) else { return }
+        try? request.handle.close()
+        if let error {
+            try? FileManager.default.removeItem(at: request.destinationURL)
+            request.continuation.resume(throwing: error)
+            return
+        }
+        guard request.receivedResponse else {
+            try? FileManager.default.removeItem(at: request.destinationURL)
+            request.continuation.resume(throwing: ModelDownloadError.transportFailed)
+            return
+        }
+        request.progress.completedUnitCount = request.receivedBytes
+        request.continuation.resume(returning: request.destinationURL)
+    }
+
+    func fail(_ task: URLSessionTask, error: Error) {
+        guard let request = take(task) else { return }
+        try? request.handle.close()
+        try? FileManager.default.removeItem(at: request.destinationURL)
+        request.continuation.resume(throwing: error)
+    }
+
+    func cancel(destinationURL: URL) {
+        let request = lock.withLock { () -> RequestState? in
+            guard let taskID = taskIDsByDestination.removeValue(forKey: destinationURL) else { return nil }
+            return requests.removeValue(forKey: taskID)
+        }
+        guard let request else { return }
+        request.task.cancel()
+        try? request.handle.close()
+        try? FileManager.default.removeItem(at: request.destinationURL)
+        request.continuation.resume(throwing: ModelDownloadError.cancelled)
+    }
+
+    private func take(_ task: URLSessionTask) -> RequestState? {
+        lock.withLock {
+            guard let request = requests.removeValue(forKey: task.taskIdentifier) else { return nil }
+            taskIDsByDestination.removeValue(forKey: request.destinationURL)
+            return request
+        }
+    }
+
+    private struct RequestState {
+        let continuation: CheckedContinuation<URL, Error>
+        let task: URLSessionDataTask
+        let destinationURL: URL
+        let handle: FileHandle
+        let progress: Progress
+        var receivedBytes: Int64 = 0
+        var receivedResponse = false
+    }
+}
+
+/// Metadata stays on a capped, redirect-restricted session. Large model files are not handled here;
+/// `SwiftHuggingFaceFileDownloader` delegates them to swift-huggingface.
 public final class URLSessionHFHTTPTransport: NSObject, HFHTTPTransport, @unchecked Sendable {
     private let session: URLSession
-    private let state = URLSessionTransportState()
+    private let state = URLSessionMetadataState()
 
     public override init() {
         let configuration = URLSessionConfiguration.default
         configuration.httpShouldSetCookies = false
         configuration.httpCookieAcceptPolicy = .never
-        let delegate = URLSessionSecurityDelegate(state: state)
+        let delegate = URLSessionMetadataDelegate(state: state)
         self.session = URLSession(configuration: configuration, delegate: delegate, delegateQueue: nil)
         super.init()
-        delegate.owner = self
     }
 
     public func metadata(from url: URL, maxBytes: Int) async throws -> HFHTTPResponse {
@@ -56,7 +296,7 @@ public final class URLSessionHFHTTPTransport: NSObject, HFHTTPTransport, @unchec
                 var request = URLRequest(url: url)
                 request.cachePolicy = .reloadIgnoringLocalCacheData
                 let task = session.dataTask(with: request)
-                state.registerMetadata(
+                state.register(
                     continuation: continuation,
                     task: task,
                     maxBytes: maxBytes,
@@ -65,45 +305,15 @@ public final class URLSessionHFHTTPTransport: NSObject, HFHTTPTransport, @unchec
                 task.resume()
             }
         } onCancel: {
-            state.cancelTask(forOriginalURL: url)
-        }
-    }
-
-    public func download(
-        from url: URL,
-        to destinationURL: URL,
-        expectedBytes: Int64,
-        progress: @escaping @Sendable (Int64) -> Void
-    ) async throws -> HFDownloadResponse {
-        try HuggingFaceModelDownloader.validateRequestURL(url)
-        try? FileManager.default.removeItem(at: destinationURL)
-        return try await withTaskCancellationHandler {
-            try await withCheckedThrowingContinuation { continuation in
-                var request = URLRequest(url: url)
-                request.cachePolicy = .reloadIgnoringLocalCacheData
-                let task = session.downloadTask(with: request)
-                state.registerDownload(
-                    continuation: continuation,
-                    task: task,
-                    originalURL: url,
-                    destinationURL: destinationURL,
-                    expectedBytes: expectedBytes,
-                    progress: progress
-                )
-                task.resume()
-            }
-        } onCancel: {
-            try? FileManager.default.removeItem(at: destinationURL)
-            state.cancelTask(forOriginalURL: url)
+            self.state.cancelTask(forOriginalURL: url)
         }
     }
 }
 
-private final class URLSessionSecurityDelegate: NSObject, URLSessionDataDelegate, URLSessionDownloadDelegate, @unchecked Sendable {
-    weak var owner: URLSessionHFHTTPTransport?
-    private let state: URLSessionTransportState
+private final class URLSessionMetadataDelegate: NSObject, URLSessionDataDelegate, @unchecked Sendable {
+    private let state: URLSessionMetadataState
 
-    init(state: URLSessionTransportState) {
+    init(state: URLSessionMetadataState) {
         self.state = state
     }
 
@@ -149,32 +359,21 @@ private final class URLSessionSecurityDelegate: NSObject, URLSessionDataDelegate
             completionHandler(.cancel)
             return
         }
-        state.receiveMetadataResponse(dataTask, response: http)
+        guard response.expectedContentLength <= 0
+                || response.expectedContentLength <= Int64(state.maxBytes(for: dataTask)) else {
+            state.fail(dataTask, error: ModelDownloadError.metadataTooLarge)
+            completionHandler(.cancel)
+            return
+        }
+        state.receiveResponse(dataTask, response: http)
         completionHandler(.allow)
     }
 
     func urlSession(_: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
-        state.appendMetadata(dataTask, data: data)
-    }
-
-    func urlSession(
-        _: URLSession,
-        downloadTask: URLSessionDownloadTask,
-        didWriteData bytesWritten: Int64,
-        totalBytesWritten: Int64,
-        totalBytesExpectedToWrite _: Int64
-    ) {
-        if bytesWritten > 0 {
-            state.reportDownloadProgress(downloadTask, totalBytesWritten: totalBytesWritten)
+        if state.append(dataTask, data: data) {
+            state.fail(dataTask, error: ModelDownloadError.metadataTooLarge)
+            dataTask.cancel()
         }
-    }
-
-    func urlSession(
-        _: URLSession,
-        downloadTask: URLSessionDownloadTask,
-        didFinishDownloadingTo location: URL
-    ) {
-        state.finishDownload(downloadTask, temporaryURL: location)
     }
 
     func urlSession(_: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
@@ -182,20 +381,19 @@ private final class URLSessionSecurityDelegate: NSObject, URLSessionDataDelegate
     }
 }
 
-private final class URLSessionTransportState: @unchecked Sendable {
+private final class URLSessionMetadataState: @unchecked Sendable {
     private let lock = NSLock()
-    private var metadata: [Int: MetadataState] = [:]
-    private var downloads: [Int: DownloadState] = [:]
+    private var requests: [Int: RequestState] = [:]
     private var taskIDsByURL: [URL: Int] = [:]
 
-    func registerMetadata(
+    func register(
         continuation: CheckedContinuation<HFHTTPResponse, Error>,
         task: URLSessionDataTask,
         maxBytes: Int,
         originalURL: URL
     ) {
         lock.withLock {
-            metadata[task.taskIdentifier] = MetadataState(
+            requests[task.taskIdentifier] = RequestState(
                 continuation: continuation,
                 task: task,
                 maxBytes: maxBytes,
@@ -205,164 +403,76 @@ private final class URLSessionTransportState: @unchecked Sendable {
         }
     }
 
-    func registerDownload(
-        continuation: CheckedContinuation<HFDownloadResponse, Error>,
-        task: URLSessionDownloadTask,
-        originalURL: URL,
-        destinationURL: URL,
-        expectedBytes: Int64,
-        progress: @escaping @Sendable (Int64) -> Void
-    ) {
+    func maxBytes(for task: URLSessionDataTask) -> Int {
+        lock.withLock { requests[task.taskIdentifier]?.maxBytes ?? 0 }
+    }
+
+    func receiveResponse(_ task: URLSessionDataTask, response: HTTPURLResponse) {
         lock.withLock {
-            downloads[task.taskIdentifier] = DownloadState(
-                continuation: continuation,
-                task: task,
-                originalURL: originalURL,
-                destinationURL: destinationURL,
-                expectedBytes: expectedBytes,
-                progress: progress
-            )
-            taskIDsByURL[originalURL] = task.taskIdentifier
+            requests[task.taskIdentifier]?.statusCode = response.statusCode
+            requests[task.taskIdentifier]?.finalURL = response.url ?? task.currentRequest?.url
         }
     }
 
-    func receiveMetadataResponse(_ task: URLSessionDataTask, response: HTTPURLResponse) {
+    /// Returns true once the configured metadata cap has been exceeded.
+    func append(_ task: URLSessionDataTask, data: Data) -> Bool {
         lock.withLock {
-            metadata[task.taskIdentifier]?.statusCode = response.statusCode
-            metadata[task.taskIdentifier]?.finalURL = response.url ?? task.currentRequest?.url
-        }
-    }
-
-    func appendMetadata(_ task: URLSessionDataTask, data: Data) {
-        let shouldCancel = lock.withLock {
-            guard var state = metadata[task.taskIdentifier] else { return false }
-            state.data.append(data)
-            metadata[task.taskIdentifier] = state
-            return state.data.count > state.maxBytes
-        }
-        if shouldCancel {
-            fail(task, error: ModelDownloadError.metadataTooLarge)
-            task.cancel()
-        }
-    }
-
-    func reportDownloadProgress(_ task: URLSessionDownloadTask, totalBytesWritten: Int64) {
-        let progress = lock.withLock { downloads[task.taskIdentifier]?.progress }
-        progress?(totalBytesWritten)
-    }
-
-    func finishDownload(_ task: URLSessionDownloadTask, temporaryURL: URL) {
-        do {
-            let state = try lock.withLock {
-                guard let state = downloads[task.taskIdentifier] else {
-                    throw ModelDownloadError.transportFailed
-                }
-                return state
-            }
-            try FileManager.default.createDirectory(
-                at: state.destinationURL.deletingLastPathComponent(),
-                withIntermediateDirectories: true
-            )
-            try? FileManager.default.removeItem(at: state.destinationURL)
-            try FileManager.default.moveItem(at: temporaryURL, to: state.destinationURL)
-        } catch {
-            fail(task, error: error)
+            guard var request = requests[task.taskIdentifier] else { return false }
+            request.data.append(data)
+            requests[task.taskIdentifier] = request
+            return request.data.count > request.maxBytes
         }
     }
 
     func complete(_ task: URLSessionTask, error: Error?) {
+        guard let request = take(task) else { return }
         if let error {
-            let storedError = lock.withLock {
-                metadata[task.taskIdentifier]?.error ?? downloads[task.taskIdentifier]?.error
-            }
-            fail(task, error: storedError ?? error)
+            request.continuation.resume(throwing: error)
             return
         }
-        if let state = lock.withLock({ metadata.removeValue(forKey: task.taskIdentifier) }) {
-            cleanup(originalURL: state.originalURL)
-            guard let finalURL = state.finalURL ?? task.currentRequest?.url,
-                  let statusCode = state.statusCode else {
-                state.continuation.resume(throwing: ModelDownloadError.transportFailed)
-                return
-            }
-            state.continuation.resume(returning: HFHTTPResponse(
-                data: state.data,
-                finalURL: finalURL,
-                statusCode: statusCode
-            ))
+        guard let finalURL = request.finalURL ?? task.currentRequest?.url,
+              let statusCode = request.statusCode else {
+            request.continuation.resume(throwing: ModelDownloadError.transportFailed)
             return
         }
-        if let state = lock.withLock({ downloads.removeValue(forKey: task.taskIdentifier) }) {
-            cleanup(originalURL: state.originalURL)
-            guard let finalURL = task.response?.url ?? task.currentRequest?.url,
-                  let http = task.response as? HTTPURLResponse else {
-                state.continuation.resume(throwing: ModelDownloadError.transportFailed)
-                return
-            }
-            state.continuation.resume(returning: HFDownloadResponse(
-                finalURL: finalURL,
-                statusCode: http.statusCode,
-                bytesWritten: state.expectedBytes
-            ))
-        }
+        request.continuation.resume(returning: HFHTTPResponse(
+            data: request.data,
+            finalURL: finalURL,
+            statusCode: statusCode
+        ))
     }
 
     func fail(_ task: URLSessionTask, error: Error) {
-        if var state = lock.withLock({ metadata.removeValue(forKey: task.taskIdentifier) }) {
-            cleanup(originalURL: state.originalURL)
-            state.error = error
-            state.continuation.resume(throwing: error)
-            return
-        }
-        if var state = lock.withLock({ downloads.removeValue(forKey: task.taskIdentifier) }) {
-            cleanup(originalURL: state.originalURL)
-            try? FileManager.default.removeItem(at: state.destinationURL)
-            state.error = error
-            state.continuation.resume(throwing: error)
-        }
+        guard let request = take(task) else { return }
+        request.continuation.resume(throwing: error)
     }
 
     func cancelTask(forOriginalURL url: URL) {
-        let taskID = lock.withLock { taskIDsByURL[url] }
-        guard let taskID else { return }
-        if let state = lock.withLock({ metadata.removeValue(forKey: taskID) }) {
-            cleanup(originalURL: state.originalURL)
-            state.task.cancel()
-            state.continuation.resume(throwing: ModelDownloadError.cancelled)
+        let request = lock.withLock { () -> RequestState? in
+            guard let taskID = taskIDsByURL.removeValue(forKey: url) else { return nil }
+            return requests.removeValue(forKey: taskID)
         }
-        if let state = lock.withLock({ downloads.removeValue(forKey: taskID) }) {
-            cleanup(originalURL: state.originalURL)
-            state.task.cancel()
-            try? FileManager.default.removeItem(at: state.destinationURL)
-            state.continuation.resume(throwing: ModelDownloadError.cancelled)
+        guard let request else { return }
+        request.task.cancel()
+        request.continuation.resume(throwing: ModelDownloadError.cancelled)
+    }
+
+    private func take(_ task: URLSessionTask) -> RequestState? {
+        lock.withLock {
+            guard let request = requests.removeValue(forKey: task.taskIdentifier) else { return nil }
+            taskIDsByURL.removeValue(forKey: request.originalURL)
+            return request
         }
     }
 
-    private func cleanup(originalURL: URL) {
-        _ = lock.withLock {
-            taskIDsByURL.removeValue(forKey: originalURL)
-        }
-    }
-
-    private struct MetadataState {
+    private struct RequestState {
         let continuation: CheckedContinuation<HFHTTPResponse, Error>
-        let task: URLSessionTask
+        let task: URLSessionDataTask
         let maxBytes: Int
         let originalURL: URL
         var statusCode: Int?
         var finalURL: URL?
         var data = Data()
-        var error: Error?
-    }
-
-    private struct DownloadState {
-        let continuation: CheckedContinuation<HFDownloadResponse, Error>
-        let task: URLSessionTask
-        let originalURL: URL
-        let destinationURL: URL
-        let expectedBytes: Int64
-        let progress: @Sendable (Int64) -> Void
-        var error: Error?
     }
 }
 
@@ -373,14 +483,17 @@ public actor HuggingFaceModelDownloader: ModelDownloading {
     public static let maxSnapshotBytes: Int64 = 24 * 1_024 * 1_024 * 1_024
 
     private let transport: any HFHTTPTransport
+    private let fileDownloader: any HFHubFileDownloading
     private let jsonDecoder = JSONDecoder()
     private let fileManager: FileManager
 
     public init(
         transport: any HFHTTPTransport = URLSessionHFHTTPTransport(),
+        fileDownloader: any HFHubFileDownloading = SwiftHuggingFaceFileDownloader(),
         fileManager: FileManager = .default
     ) {
         self.transport = transport
+        self.fileDownloader = fileDownloader
         self.fileManager = fileManager
     }
 
@@ -459,19 +572,41 @@ public actor HuggingFaceModelDownloader: ModelDownloading {
                     at: target.deletingLastPathComponent(),
                     withIntermediateDirectories: true
                 )
+
                 let completedBeforeFile = completed
-                let response = try await transport.download(
-                    from: file.downloadURL,
-                    to: target,
-                    expectedBytes: file.sizeBytes
-                ) { fileCompleted in
-                    progress(.init(
-                        completedBytes: completedBeforeFile + min(max(fileCompleted, 0), file.sizeBytes),
-                        totalBytes: plan.expectedSizeBytes
-                    ))
+                let fileProgress = Progress(totalUnitCount: file.sizeBytes)
+                progress(.init(completedBytes: completedBeforeFile, totalBytes: plan.expectedSizeBytes))
+                let samplingTask = Task { [fileProgress] in
+                    while !Task.isCancelled {
+                        let downloaded = min(max(fileProgress.completedUnitCount, 0), file.sizeBytes)
+                        progress(.init(
+                            completedBytes: completedBeforeFile + downloaded,
+                            totalBytes: plan.expectedSizeBytes
+                        ))
+                        do {
+                            try await Task.sleep(for: .milliseconds(100))
+                        } catch {
+                            break
+                        }
+                    }
                 }
-                try Self.validateFinalURL(response.finalURL)
-                guard response.statusCode == 200 else { throw ModelDownloadError.transportFailed }
+
+                do {
+                    _ = try await fileDownloader.downloadFile(
+                        reference: plan.revision.reference,
+                        revision: plan.revision.commitSHA,
+                        path: file.path,
+                        to: target,
+                        progress: fileProgress
+                    )
+                } catch {
+                    samplingTask.cancel()
+                    _ = await samplingTask.result
+                    throw error
+                }
+                samplingTask.cancel()
+                _ = await samplingTask.result
+
                 let actualSize = try target.resourceValues(forKeys: [.fileSizeKey]).fileSize ?? -1
                 guard Int64(actualSize) == file.sizeBytes else {
                     throw ModelDownloadError.integrityFailed(file.path)
@@ -482,11 +617,19 @@ public actor HuggingFaceModelDownloader: ModelDownloading {
                 completed += file.sizeBytes
                 progress(.init(completedBytes: completed, totalBytes: plan.expectedSizeBytes))
             }
-        } catch is CancellationError {
-            try? fileManager.removeItem(at: stagingURL)
-            throw ModelDownloadError.cancelled
+            let manifest = try VerifiedDownloadManifest(
+                plan: plan,
+                rootURL: stagingURL,
+                fileManager: fileManager
+            )
+            let manifestURL = stagingURL.appendingPathComponent(VerifiedDownloadManifest.fileName)
+            let manifestData = try JSONEncoder().encode(manifest)
+            try manifestData.write(to: manifestURL, options: [.atomic])
         } catch {
             try? fileManager.removeItem(at: stagingURL)
+            if Self.isCancellation(error) {
+                throw ModelDownloadError.cancelled
+            }
             throw error
         }
     }
@@ -498,11 +641,12 @@ public actor HuggingFaceModelDownloader: ModelDownloading {
               target.port == nil,
               let host = target.host?.lowercased() else { return false }
         return host == "huggingface.co"
+            || host.hasSuffix(".cdn.hf.co")
             || host == "cdn-lfs.huggingface.co"
             || host == "cdn-lfs-us-1.huggingface.co"
             || host == "cdn-lfs-eu-1.huggingface.co"
-            || host == "cdn-lfs.hf.co"
             || host == "cas-bridge.xethub.hf.co"
+            || host == "cas-server.xethub.hf.co"
     }
 
     public static func validateRequestURL(_ url: URL) throws {
@@ -511,6 +655,12 @@ public actor HuggingFaceModelDownloader: ModelDownloading {
 
     private static func validateFinalURL(_ url: URL) throws {
         guard validateRedirect(from: url, to: url) else { throw ModelDownloadError.redirectNotAllowed }
+    }
+
+    private static func isCancellation(_ error: Error) -> Bool {
+        if error is CancellationError || Task.isCancelled { return true }
+        return (error as? URLError)?.code == .cancelled
+            || (error as NSError).code == NSURLErrorCancelled
     }
 
     private static func isSupportedModelPath(_ path: String) -> Bool {
@@ -524,7 +674,6 @@ public actor HuggingFaceModelDownloader: ModelDownloading {
               !path.hasPrefix("/"),
               !path.contains("\\"),
               !path.contains("//"),
-              !path.contains("%2f"),
               !path.lowercased().contains("%2f"),
               !path.lowercased().contains("%5c") else {
             return false

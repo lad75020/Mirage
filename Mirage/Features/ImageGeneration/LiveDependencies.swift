@@ -22,9 +22,9 @@ private actor UnavailableGenerator: ImageGenerating {
 
 @MainActor
 enum LiveDependencies {
-    static func makeViewModel() -> ImageGenerationViewModel {
+    static func makeViewModel(modelStorageBaseURL: URL? = nil) -> ImageGenerationViewModel {
         do {
-            let store = try ModelStore()
+            let store = try ModelStore(documentsURL: modelStorageBaseURL)
             let resolver = try ModelFileResolver(rootURL: store.modelRootURL)
             let downloader = HuggingFaceModelDownloader()
             return ImageGenerationViewModel(

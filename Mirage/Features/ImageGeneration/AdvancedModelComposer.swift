@@ -54,6 +54,7 @@ public enum AdvancedModelComposer {
             license: combinedLicense(plans: inputs.map(\.plan)),
             totalSizeBytes: files.reduce(0) { $0 + $1.sizeBytes }
         )
+        let totalModelBytes = files.reduce(Int64(0)) { $0 + $1.sizeBytes }
         let descriptor = ModelDescriptor(
             id: .advancedCustom,
             repository: compositeReference,
@@ -63,7 +64,7 @@ public enum AdvancedModelComposer {
             packageVersion: ModelCatalog.packageVersion,
             requirements: requirements,
             profile: GenerationProfile(width: 1024, height: 1024, steps: 20, cfgScale: 7),
-            minimumAvailableMemoryBytes: 0,
+            minimumAvailableMemoryBytes: conservativeMemoryRequirement(for: totalModelBytes),
             licenseApproved: true,
             evaluationApproved: true
         )
@@ -101,6 +102,16 @@ public enum AdvancedModelComposer {
             .joined()
             .prefix(40)
             .description
+    }
+
+    private static func conservativeMemoryRequirement(for modelBytes: Int64) -> UInt64 {
+        let bytes = UInt64(max(modelBytes, 0))
+        let withWorkingMemory = bytes + bytes / 4
+        let unit: UInt64 = 1_000_000_000
+        let rounded = withWorkingMemory > UInt64.max - (unit - 1)
+            ? UInt64.max
+            : ((withWorkingMemory + unit - 1) / unit) * unit
+        return max(4 * unit, rounded)
     }
 
     private static func combinedLicense(plans: [ModelDownloadPlan]) -> String? {

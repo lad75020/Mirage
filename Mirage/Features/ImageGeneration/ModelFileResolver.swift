@@ -1,6 +1,8 @@
 import CryptoKit
 import Foundation
+#if os(iOS)
 import UIKit
+#endif
 
 public enum ModelResolutionError: Error, Equatable, Sendable {
     case modelUnavailable
@@ -10,11 +12,19 @@ public enum ModelResolutionError: Error, Equatable, Sendable {
     case fileSystemFailure
 }
 
+private struct FileSignature: Equatable {
+    let sizeBytes: Int64
+    let modificationTime: TimeInterval
+}
 public struct LiveProtectedDataProvider: ProtectedDataProviding {
     public init() {}
 
     public func isProtectedDataAvailable() async -> Bool {
+        #if os(iOS)
         await MainActor.run { UIApplication.shared.isProtectedDataAvailable }
+        #else
+        true
+        #endif
     }
 }
 
@@ -24,6 +34,7 @@ public actor ModelFileResolver: ModelAvailabilityProviding {
     private let protectedDataProvider: any ProtectedDataProviding
     private let deviceProvider: any DeviceCapabilityProviding
     private let fileManager: FileManager
+    private var verifiedFileSignatures: [String: FileSignature] = [:]
 
     public init(
         rootURL: URL? = nil,
@@ -47,6 +58,13 @@ public actor ModelFileResolver: ModelAvailabilityProviding {
     }
 
     public func availability(for descriptor: ModelDescriptor) async -> ModelAvailability {
+        await availability(for: descriptor, revalidateFiles: true)
+    }
+
+    public func availability(
+        for descriptor: ModelDescriptor,
+        revalidateFiles: Bool
+    ) async -> ModelAvailability {
         guard await protectedDataProvider.isProtectedDataAvailable() else {
             return .protectedDataUnavailable
         }
@@ -101,18 +119,32 @@ public actor ModelFileResolver: ModelAvailabilityProviding {
                     return .incompatibleAssets
                 }
                 let attributes = try fileManager.attributesOfItem(atPath: url.path)
+                let actualSize = (attributes[.size] as? NSNumber)?.int64Value
                 if let expected = requirement.expectedByteCount,
-                   let actual = attributes[.size] as? NSNumber,
-                   actual.int64Value != expected {
+                   actualSize != expected {
                     return .integrityFailed(requirement.fileName)
                 }
+                guard let modified = attributes[.modificationDate] as? Date else {
+                    return .integrityFailed(requirement.fileName)
+                }
+                let signature = FileSignature(
+                    sizeBytes: actualSize ?? -1,
+                    modificationTime: modified.timeIntervalSinceReferenceDate
+                )
+                let signatureKey = "\(descriptor.id.rawValue):\(requirement.fileName)"
+                let changedSinceVerification = verifiedFileSignatures[signatureKey].map { $0 != signature } ?? false
+                #if os(iOS)
                 try fileManager.setAttributes(
                     [.protectionKey: FileProtectionType.completeUntilFirstUserAuthentication],
                     ofItemAtPath: url.path
                 )
-                if try sha256(of: url) != requirement.sha256?.lowercased() {
-                    return .integrityFailed(requirement.fileName)
+                #endif
+                if revalidateFiles || changedSinceVerification {
+                    if try sha256(of: url) != requirement.sha256?.lowercased() {
+                        return .integrityFailed(requirement.fileName)
+                    }
                 }
+                verifiedFileSignatures[signatureKey] = signature
             } catch {
                 return .integrityFailed(requirement.fileName)
             }

@@ -20,9 +20,9 @@ struct ImageGenerationModelSettingsView: View {
             .padding(.vertical, 24)
             .frame(maxWidth: .infinity)
         }
-        .background(Color(uiColor: .systemGroupedBackground).ignoresSafeArea())
+        .background(PlatformAppearance.groupedBackground.ignoresSafeArea())
         .navigationTitle("Model Settings")
-        .navigationBarTitleDisplayMode(.inline)
+        .mirageInlineNavigationTitle()
         .task { await viewModel.refreshAvailability() }
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.2), value: viewModel.state)
     }
@@ -81,7 +81,7 @@ struct ImageGenerationModelSettingsView: View {
                 .foregroundStyle(.secondary)
         }
         .padding(12)
-        .background(Color(uiColor: .tertiarySystemFill), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .background(PlatformAppearance.tertiaryFill, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Featured model \(reference.id)")
         .accessibilityIdentifier("Featured model \(reference.id)")
@@ -152,7 +152,7 @@ struct ImageGenerationModelSettingsView: View {
                 }
             }
             .padding(12)
-            .background(Color(uiColor: .secondarySystemFill), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .background(PlatformAppearance.secondaryFill, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
         }
     }
 
@@ -166,8 +166,7 @@ struct ImageGenerationModelSettingsView: View {
                     .foregroundStyle(.secondary)
                 HStack {
                     TextField("owner/repository", text: $viewModel.customReferenceInput)
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled()
+                        .mirageRepositoryTextInput()
                         .textFieldStyle(.roundedBorder)
                         .accessibilityIdentifier("Custom model reference")
                     Button("Download", systemImage: "arrow.down.circle") {
@@ -249,8 +248,7 @@ struct ImageGenerationModelSettingsView: View {
             Text(title)
                 .font(.subheadline.weight(.semibold))
             TextField("owner/model_name", text: text)
-                .textInputAutocapitalization(.never)
-                .autocorrectionDisabled()
+                .mirageRepositoryTextInput()
                 .textFieldStyle(.roundedBorder)
                 .accessibilityIdentifier("Advanced \(title)")
         }
@@ -315,14 +313,14 @@ struct ImageGenerationModelSettingsView: View {
             }
         }
         .padding(12)
-        .background(Color(uiColor: .tertiarySystemFill), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .background(PlatformAppearance.tertiaryFill, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 
     private func settingsCard<Content: View>(@ViewBuilder content: () -> Content) -> some View {
         content()
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(16)
-            .background(Color(uiColor: .secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+            .background(PlatformAppearance.secondaryGroupedBackground, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
     }
 
     private func downloadStateText(for reference: ModelRepositoryReference) -> String {

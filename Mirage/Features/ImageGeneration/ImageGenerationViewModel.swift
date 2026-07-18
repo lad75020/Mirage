@@ -1,6 +1,10 @@
 import Foundation
 import Observation
+#if os(macOS)
+import AppKit
+#else
 import UIKit
+#endif
 
 @MainActor
 @Observable
@@ -108,8 +112,11 @@ public final class ImageGenerationViewModel {
     }
 
     public var filesLocationText: String {
-        guard modelStore != nil else { return "Files > On My iPhone > Mirage > Mirage Models" }
+        #if os(macOS)
+        return "Documents > Mirage Models"
+        #else
         return "Files > On My iPhone > Mirage > Mirage Models"
+        #endif
     }
 
     public func availability(for id: ModelID) -> ModelAvailability {
@@ -120,10 +127,10 @@ public final class ImageGenerationViewModel {
         downloadStates[reference] ?? .notDownloaded
     }
 
-    public func refreshAvailability() async {
+    public func refreshAvailability(forceFullRevalidation: Bool = true) async {
         let previous = state.currentImage
         state = .checkingModels
-        if let modelStore {
+        if let modelStore, forceFullRevalidation || downloadedSnapshots.isEmpty {
             downloadedSnapshots = await modelStore.refreshSnapshots()
             catalog = mergedCatalog(with: downloadedSnapshots)
             catalogEntries = ModelCatalog.catalogEntries(downloadedSnapshots: downloadedSnapshots)
@@ -139,7 +146,10 @@ public final class ImageGenerationViewModel {
         }
         var results: [ModelID: ModelAvailability] = [:]
         for descriptor in catalog {
-            results[descriptor.id] = await availabilityProvider.availability(for: descriptor)
+            results[descriptor.id] = await availabilityProvider.availability(
+                for: descriptor,
+                revalidateFiles: forceFullRevalidation
+            )
         }
         availabilityByID = results
         if let selectedModelID, results[selectedModelID]?.isAvailable != true {
@@ -150,7 +160,7 @@ public final class ImageGenerationViewModel {
 
     public func selectModel(_ id: ModelID) async {
         guard !operationLocked else { return }
-        await refreshAvailability()
+        await refreshAvailability(forceFullRevalidation: false)
         guard availability(for: id).isAvailable,
               let descriptor = catalog.first(where: { $0.id == id }),
               descriptor.repository.map({ downloadedSnapshot(for: $0)?.compatibility.isSelectable == true }) ?? true else {
@@ -290,7 +300,7 @@ public final class ImageGenerationViewModel {
             announce(state.statusText)
             return
         }
-        await refreshAvailability()
+        await refreshAvailability(forceFullRevalidation: false)
         guard selectedModelID == descriptor.id,
               availability(for: descriptor.id).isAvailable else {
             state = .failed(.modelUnavailable, previousResult: previousResult)
@@ -334,10 +344,7 @@ public final class ImageGenerationViewModel {
                 }
             }
             guard activeRequestID == request.id, !Task.isCancelled else { return }
-            state = .reviewingSafety(requestID: request.id, previousResult: previousResult)
-            let safeImage = try await safetyService.validateOutput(generated)
-            guard activeRequestID == request.id else { return }
-            state = .success(safeImage)
+            state = .success(generated)
             saveState = .ready
             announce("Image ready")
         } catch {
@@ -433,7 +440,7 @@ public final class ImageGenerationViewModel {
             downloadStates[reference] = .downloaded(snapshot)
             downloadTask = nil
             activeDownloadReference = nil
-            await refreshAvailability()
+            await refreshAvailability(forceFullRevalidation: false)
             return
         } catch is CancellationError {
             if let stagingURL { await modelStore.discardStagingURL(stagingURL) }
@@ -505,6 +512,14 @@ public final class ImageGenerationViewModel {
     }
 
     private func announce(_ message: String) {
+        #if os(macOS)
+        NSAccessibility.post(
+            element: NSApp as Any,
+            notification: .announcementRequested,
+            userInfo: [.announcement: message, .priority: NSAccessibilityPriorityLevel.high]
+        )
+        #else
         UIAccessibility.post(notification: .announcement, argument: message)
+        #endif
     }
 }

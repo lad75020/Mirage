@@ -123,7 +123,7 @@ final class HuggingFaceModelDownloaderTests: XCTestCase {
         defer { try? FileManager.default.removeItem(at: root) }
         let progress = ProgressRecorder()
         let progressExpectation = expectation(description: "Download progress reported")
-        let downloader = HuggingFaceModelDownloader(transport: StubHFTransport(responses: [
+        let downloader = HuggingFaceModelDownloader(fileDownloader: StubHFFileDownloader(responses: [
             fileURL.absoluteString: .init(data: Data("model".utf8), finalURL: fileURL, statusCode: 200)
         ]))
 
@@ -139,8 +139,11 @@ final class HuggingFaceModelDownloaderTests: XCTestCase {
         let reportedProgress = await progress.values
         XCTAssertEqual(reportedProgress.last?.fractionCompleted, 1)
         XCTAssertTrue(FileManager.default.fileExists(atPath: root.appendingPathComponent("model.gguf").path))
+        let manifestData = try Data(contentsOf: root.appendingPathComponent(VerifiedDownloadManifest.fileName))
+        let manifest = try JSONDecoder().decode(VerifiedDownloadManifest.self, from: manifestData)
+        XCTAssertTrue(manifest.matches(plan, rootURL: root))
 
-        let bad = HuggingFaceModelDownloader(transport: StubHFTransport(responses: [
+        let bad = HuggingFaceModelDownloader(fileDownloader: StubHFFileDownloader(responses: [
             fileURL.absoluteString: .init(data: Data("wrong".utf8), finalURL: fileURL, statusCode: 200)
         ]))
         do {
@@ -167,7 +170,7 @@ final class HuggingFaceModelDownloaderTests: XCTestCase {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
         defer { try? FileManager.default.removeItem(at: root) }
 
-        let failing = HuggingFaceModelDownloader(transport: ThrowingHFTransport(error: ModelDownloadError.cancelled))
+        let failing = HuggingFaceModelDownloader(fileDownloader: ThrowingHFFileDownloader(error: ModelDownloadError.cancelled))
         do {
             try await failing.download(plan: plan, to: root) { _ in }
             XCTFail("Expected cancellation")
@@ -176,12 +179,50 @@ final class HuggingFaceModelDownloaderTests: XCTestCase {
         }
         XCTAssertFalse(FileManager.default.fileExists(atPath: root.path))
 
-        let retry = HuggingFaceModelDownloader(transport: StubHFTransport(responses: [
+        let retry = HuggingFaceModelDownloader(fileDownloader: StubHFFileDownloader(responses: [
             fileURL.absoluteString: .init(data: Data("model".utf8), finalURL: fileURL, statusCode: 200)
         ]))
         try await retry.download(plan: plan, to: root) { _ in }
         XCTAssertEqual(try Data(contentsOf: root.appendingPathComponent("model.gguf")), Data("model".utf8))
     }
+
+    func testURLSessionFileDownloadStateReportsProgressBeforeCompletion() async throws {
+        let state = URLSessionFileDownloadState()
+        let sessionTask = URLSession.shared.dataTask(with: URL(string: "https://huggingface.co")!)
+        let destination = FileManager.default.temporaryDirectory
+            .appendingPathComponent("mirage-progress-\(UUID().uuidString).gguf")
+        defer { try? FileManager.default.removeItem(at: destination) }
+        let progress = Progress(totalUnitCount: 10)
+
+        let completionTask = Task {
+            try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<URL, Error>) in
+                do {
+                    try state.register(
+                        continuation: continuation,
+                        task: sessionTask,
+                        destinationURL: destination,
+                        progress: progress
+                    )
+                } catch {
+                    continuation.resume(throwing: error)
+                }
+            }
+        }
+
+        for _ in 0..<100 where !FileManager.default.fileExists(atPath: destination.path) {
+            try await Task.sleep(for: .milliseconds(5))
+        }
+        state.receiveResponse(sessionTask)
+        XCTAssertNil(state.append(sessionTask, data: Data("12345".utf8)))
+        XCTAssertEqual(progress.completedUnitCount, 5, "Progress must advance while the transfer is active")
+
+        XCTAssertNil(state.append(sessionTask, data: Data("67890".utf8)))
+        state.complete(sessionTask, error: nil)
+        _ = try await completionTask.value
+        XCTAssertEqual(progress.completedUnitCount, 10)
+        XCTAssertEqual(try Data(contentsOf: destination), Data("1234567890".utf8))
+    }
+
 }
 
 private struct StubHFTransport: HFHTTPTransport {
@@ -197,14 +238,20 @@ private struct StubHFTransport: HFHTTPTransport {
         }
         return response
     }
+}
 
-    func download(
-        from url: URL,
+private struct StubHFFileDownloader: HFHubFileDownloading {
+    let responses: [String: HFHTTPResponse]
+
+    func downloadFile(
+        reference: ModelRepositoryReference,
+        revision: String,
+        path: String,
         to destinationURL: URL,
-        expectedBytes: Int64,
-        progress: @escaping @Sendable (Int64) -> Void
-    ) async throws -> HFDownloadResponse {
-        guard let response = responses[url.absoluteString] else {
+        progress: Progress
+    ) async throws -> URL {
+        let url = "https://huggingface.co/\(reference.id)/resolve/\(revision)/\(path)"
+        guard let response = responses[url] else {
             throw ModelDownloadError.transportFailed
         }
         try FileManager.default.createDirectory(
@@ -212,34 +259,28 @@ private struct StubHFTransport: HFHTTPTransport {
             withIntermediateDirectories: true
         )
         try response.data.write(to: destinationURL)
-        progress(Int64(response.data.count))
-        return HFDownloadResponse(
-            finalURL: response.finalURL,
-            statusCode: response.statusCode,
-            bytesWritten: Int64(response.data.count)
-        )
+        progress.totalUnitCount = Int64(response.data.count)
+        progress.completedUnitCount = Int64(response.data.count)
+        return destinationURL
     }
 }
 
-private struct ThrowingHFTransport: HFHTTPTransport {
+private struct ThrowingHFFileDownloader: HFHubFileDownloading {
     let error: Error
 
-    func metadata(from url: URL, maxBytes: Int) async throws -> HFHTTPResponse {
-        throw error
-    }
-
-    func download(
-        from url: URL,
+    func downloadFile(
+        reference: ModelRepositoryReference,
+        revision: String,
+        path: String,
         to destinationURL: URL,
-        expectedBytes: Int64,
-        progress: @escaping @Sendable (Int64) -> Void
-    ) async throws -> HFDownloadResponse {
+        progress: Progress
+    ) async throws -> URL {
         try FileManager.default.createDirectory(
             at: destinationURL.deletingLastPathComponent(),
             withIntermediateDirectories: true
         )
         try Data("part".utf8).write(to: destinationURL)
-        progress(4)
+        progress.completedUnitCount = 4
         throw error
     }
 }

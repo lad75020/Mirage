@@ -21,6 +21,11 @@ final class AdvancedCompositeModelTests: XCTestCase {
             "advanced/vae/vae.safetensors"
         ])
         XCTAssertEqual(composed.revision.reference, AdvancedModelComposer.compositeReference)
+        XCTAssertGreaterThanOrEqual(composed.descriptor?.minimumAvailableMemoryBytes ?? 0, 4_000_000_000)
+        XCTAssertGreaterThan(
+            composed.descriptor?.minimumAvailableMemoryBytes ?? 0,
+            UInt64(composed.expectedSizeBytes)
+        )
     }
 
     func testComposerRejectsAmbiguousRepositoriesInsteadOfChoosingUnexpectedWeights() throws {

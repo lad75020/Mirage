@@ -1,8 +1,12 @@
 import Foundation
+import Mirage
 import XCTest
 @testable import MirageApp
 
 final class ImageGenerationPerformanceTests: XCTestCase {
+    func testNativeEngineReleasesComponentWeightsBetweenGenerationPhases() {
+        XCTAssertTrue(Mirage.releasesComponentWeightsAfterUse)
+    }
     func testCatalogAndPromptPolicyStayLightweight() {
         measure {
             for _ in 0..<1_000 {

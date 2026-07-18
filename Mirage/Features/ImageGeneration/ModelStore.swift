@@ -71,25 +71,34 @@ public actor ModelStore: ModelSnapshotStoring {
 
     public func promote(plan: ModelDownloadPlan, from stagingURL: URL) async throws -> LocalModelSnapshot {
         try ensureSufficientSpace(for: plan)
-        try validate(folderURL: stagingURL, files: plan.files, allowMetadata: false)
-        try ensureSufficientSpace(for: plan)
+        try ensureOwnedStagingURL(stagingURL)
+        let trustsDownloadedHashes = verificationManifest(at: stagingURL)?.matches(
+            plan,
+            rootURL: stagingURL,
+            fileManager: fileManager
+        ) == true
+        try validate(
+            folderURL: stagingURL,
+            files: plan.files,
+            allowMetadata: false,
+            allowVerificationManifest: trustsDownloadedHashes,
+            hashContents: !trustsDownloadedHashes
+        )
 
         let folder = Self.safeFolderName(for: plan.revision.reference)
         let destination = modelRootURL.appendingPathComponent(folder, isDirectory: true)
         let replacement = modelRootURL.appendingPathComponent(".\(folder).replacement-\(UUID().uuidString)", isDirectory: true)
-        try fileManager.createDirectory(at: replacement, withIntermediateDirectories: true)
         do {
-            for file in plan.files {
-                let source = try containedURL(root: stagingURL, relativePath: file.path)
-                let target = try containedURL(root: replacement, relativePath: file.path)
-                try fileManager.createDirectory(
-                    at: target.deletingLastPathComponent(),
-                    withIntermediateDirectories: true
-                )
-                try fileManager.copyItem(at: source, to: target)
-            }
+            try moveDirectoryContents(from: stagingURL, to: replacement, files: plan.files)
+            try? fileManager.removeItem(at: replacement.appendingPathComponent(VerifiedDownloadManifest.fileName))
             try writeMetadata(plan: plan, folderName: folder, root: replacement)
-            try validate(folderURL: replacement, files: plan.files, allowMetadata: true)
+            try validate(
+                folderURL: replacement,
+                files: plan.files,
+                allowMetadata: true,
+                allowVerificationManifest: false,
+                hashContents: false
+            )
             try setProtection(on: replacement, recursive: true)
             if fileManager.fileExists(atPath: destination.path) {
                 _ = try fileManager.replaceItemAt(
@@ -102,8 +111,13 @@ public actor ModelStore: ModelSnapshotStoring {
                 try fileManager.moveItem(at: replacement, to: destination)
             }
             try setProtection(on: destination, recursive: true)
-            try validate(folderURL: destination, files: plan.files, allowMetadata: true)
-            try? fileManager.removeItem(at: stagingURL)
+            try validate(
+                folderURL: destination,
+                files: plan.files,
+                allowMetadata: true,
+                allowVerificationManifest: false,
+                hashContents: false
+            )
             let provisionalSnapshot = LocalModelSnapshot(
                 reference: plan.revision.reference,
                 commitSHA: plan.revision.commitSHA,
@@ -157,7 +171,13 @@ public actor ModelStore: ModelSnapshotStoring {
                 compatibility: .unknownCustomRepository,
                 descriptor: metadata.descriptor
             )
-            guard (try? validate(folderURL: folder, files: metadata.files, allowMetadata: true)) != nil else {
+            guard (try? validate(
+                folderURL: folder,
+                files: metadata.files,
+                allowMetadata: true,
+                allowVerificationManifest: false,
+                hashContents: true
+            )) != nil else {
                 return LocalModelSnapshot(
                     reference: reference,
                     commitSHA: metadata.commitSHA,
@@ -205,6 +225,58 @@ public actor ModelStore: ModelSnapshotStoring {
         return "\(slug)-\(digest)"
     }
 
+    private func ensureOwnedStagingURL(_ url: URL) throws {
+        let root = stagingRootURL.standardizedFileURL
+        let candidate = url.standardizedFileURL
+        let rootPath = root.path.hasSuffix("/") ? root.path : root.path + "/"
+        guard candidate.path.hasPrefix(rootPath), candidate.deletingLastPathComponent() == root else {
+            throw ModelStoreError.unsafePath(url.path)
+        }
+    }
+
+    private func verificationManifest(at stagingURL: URL) -> VerifiedDownloadManifest? {
+        let url = stagingURL.appendingPathComponent(VerifiedDownloadManifest.fileName)
+        guard let data = try? Data(contentsOf: url), data.count <= 64 * 1_024 else { return nil }
+        return try? JSONDecoder().decode(VerifiedDownloadManifest.self, from: data)
+    }
+
+    private func moveDirectoryContents(
+        from stagingURL: URL,
+        to replacement: URL,
+        files: [ModelDownloadFile]
+    ) throws {
+        do {
+            try fileManager.moveItem(at: stagingURL, to: replacement)
+            return
+        } catch {
+            try fileManager.createDirectory(at: replacement, withIntermediateDirectories: true)
+        }
+
+        for file in files {
+            let source = try containedURL(root: stagingURL, relativePath: file.path)
+            let target = try containedURL(root: replacement, relativePath: file.path)
+            try fileManager.createDirectory(at: target.deletingLastPathComponent(), withIntermediateDirectories: true)
+            try moveOrCopyItem(from: source, to: target)
+        }
+        let manifestSource = stagingURL.appendingPathComponent(VerifiedDownloadManifest.fileName)
+        if fileManager.fileExists(atPath: manifestSource.path) {
+            try moveOrCopyItem(
+                from: manifestSource,
+                to: replacement.appendingPathComponent(VerifiedDownloadManifest.fileName)
+            )
+        }
+        try? fileManager.removeItem(at: stagingURL)
+    }
+
+    private func moveOrCopyItem(from source: URL, to destination: URL) throws {
+        do {
+            try fileManager.moveItem(at: source, to: destination)
+        } catch {
+            try fileManager.copyItem(at: source, to: destination)
+            try fileManager.removeItem(at: source)
+        }
+    }
+
     private func ensureSufficientSpace(for plan: ModelDownloadPlan) throws {
         guard plan.files.count <= HuggingFaceModelDownloader.maxModelFileCount else {
             throw ModelStoreError.tooManyFiles
@@ -219,7 +291,13 @@ public actor ModelStore: ModelSnapshotStoring {
         }
     }
 
-    private func validate(folderURL: URL, files: [ModelDownloadFile], allowMetadata: Bool) throws {
+    private func validate(
+        folderURL: URL,
+        files: [ModelDownloadFile],
+        allowMetadata: Bool,
+        allowVerificationManifest: Bool,
+        hashContents: Bool
+    ) throws {
         let expectedPaths = Set(files.map(\.path))
         let expectedLowered = files.map { $0.path.lowercased() }
         guard Set(expectedLowered).count == expectedLowered.count else {
@@ -280,6 +358,9 @@ public actor ModelStore: ModelSnapshotStoring {
                 if allowMetadata, relativePath == ".mirage-snapshot.json" {
                     continue
                 }
+                if allowVerificationManifest, relativePath == VerifiedDownloadManifest.fileName {
+                    continue
+                }
                 throw ModelStoreError.hiddenFile(relativePath)
             }
             guard expectedPaths.contains(relativePath) else {
@@ -314,8 +395,10 @@ public actor ModelStore: ModelSnapshotStoring {
             if let actualSize = resourceValues.fileSize, Int64(actualSize) != file.sizeBytes {
                 throw ModelStoreError.integrityFailed(file.path)
             }
-            guard let expectedHash = file.sha256, try sha256(of: url) == expectedHash else {
-                throw ModelStoreError.integrityFailed(file.path)
+            if hashContents {
+                guard let expectedHash = file.sha256, try sha256(of: url) == expectedHash else {
+                    throw ModelStoreError.integrityFailed(file.path)
+                }
             }
         }
     }
@@ -394,6 +477,7 @@ public actor ModelStore: ModelSnapshotStoring {
     }
 
     private static func setProtection(on url: URL, recursive: Bool, fileManager: FileManager) throws {
+        #if os(iOS)
         try fileManager.setAttributes(
             [.protectionKey: FileProtectionType.completeUntilFirstUserAuthentication],
             ofItemAtPath: url.path
@@ -408,6 +492,11 @@ public actor ModelStore: ModelSnapshotStoring {
                 ofItemAtPath: child.path
             )
         }
+        #else
+        _ = url
+        _ = recursive
+        _ = fileManager
+        #endif
     }
 
     private func sha256(of url: URL) throws -> String {

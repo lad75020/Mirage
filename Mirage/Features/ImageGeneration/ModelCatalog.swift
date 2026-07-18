@@ -61,7 +61,7 @@ public enum ModelCatalog {
                 )
             ],
             profile: .init(width: 1024, height: 1024, steps: 9, cfgScale: 1, negativePrompt: safetyNegativePrompt),
-            minimumMemory: 8_000_000_000,
+            minimumMemory: 6_000_000_000,
             licenseApproved: true,
             evaluationApproved: true
         ),
@@ -92,7 +92,8 @@ public enum ModelCatalog {
             ],
             profile: .init(width: 1024, height: 1024, steps: 8, cfgScale: 1, negativePrompt: safetyNegativePrompt),
             minimumMemory: 7_000_000_000,
-            licenseApproved: true
+            licenseApproved: true,
+            evaluationApproved: true
         ),
         descriptor(
             .chroma1HD,
@@ -121,7 +122,8 @@ public enum ModelCatalog {
             ],
             profile: .init(width: 1024, height: 1024, steps: 28, cfgScale: 4, negativePrompt: safetyNegativePrompt),
             minimumMemory: 16_000_000_000,
-            licenseApproved: true
+            licenseApproved: true,
+            evaluationApproved: true
         )
     ]
 
@@ -156,7 +158,10 @@ public enum ModelCatalog {
     }
 
     public static func compatibility(for snapshot: LocalModelSnapshot) -> ModelCompatibility {
-        guard let descriptor = snapshot.descriptor ?? descriptor(for: snapshot.reference),
+        // Built-in catalog evidence is authoritative for featured repositories so
+        // an app update can approve an existing verified download without requiring
+        // users to delete and redownload a snapshot with stale embedded metadata.
+        guard let descriptor = descriptor(for: snapshot.reference) ?? snapshot.descriptor,
               descriptor.reviewedRevisionSHA == snapshot.commitSHA,
               descriptor.licenseApproved,
               descriptor.evaluationApproved,

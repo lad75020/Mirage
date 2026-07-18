@@ -49,6 +49,51 @@ public struct ModelDownloadPlan: Equatable, Codable, Sendable {
     }
 }
 
+struct VerifiedDownloadManifest: Equatable, Codable, Sendable {
+    static let fileName = ".mirage-download-verified.json"
+
+    struct File: Equatable, Codable, Sendable {
+        let path: String
+        let sizeBytes: Int64
+        let sha256: String
+        let modificationTime: TimeInterval
+    }
+
+    let commitSHA: String
+    let files: [File]
+
+    init(plan: ModelDownloadPlan, rootURL: URL, fileManager: FileManager = .default) throws {
+        self.commitSHA = plan.revision.commitSHA
+        self.files = try plan.files.map { file in
+            guard let sha256 = file.sha256 else {
+                throw ModelDownloadError.integrityFailed(file.path)
+            }
+            let url = rootURL.appendingPathComponent(file.path)
+            let attributes = try fileManager.attributesOfItem(atPath: url.path)
+            guard let modified = attributes[.modificationDate] as? Date else {
+                throw ModelDownloadError.integrityFailed(file.path)
+            }
+            return File(
+                path: file.path,
+                sizeBytes: file.sizeBytes,
+                sha256: sha256,
+                modificationTime: modified.timeIntervalSinceReferenceDate
+            )
+        }
+    }
+
+    func matches(
+        _ plan: ModelDownloadPlan,
+        rootURL: URL,
+        fileManager: FileManager = .default
+    ) -> Bool {
+        guard let current = try? Self(plan: plan, rootURL: rootURL, fileManager: fileManager) else {
+            return false
+        }
+        return self == current
+    }
+}
+
 public enum ModelDownloadState: Equatable, Codable, Sendable {
     case notDownloaded
     case resolving(reference: ModelRepositoryReference)

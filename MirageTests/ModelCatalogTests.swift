@@ -41,6 +41,15 @@ final class ModelCatalogTests: XCTestCase {
         XCTAssertEqual(chroma.requirements.map(\.expectedByteCount), [5_432_053_920, 335_304_388, 9_787_841_024])
     }
 
+    func testAllFeaturedModelsAreEvaluationApproved() {
+        XCTAssertTrue(ModelCatalog.entries.allSatisfy(\.evaluationApproved))
+    }
+
+    func testZImageUsesMemorySafeRuntimeThreshold() throws {
+        let descriptor = try XCTUnwrap(ModelCatalog.descriptor(for: .zImageTurbo))
+        XCTAssertEqual(descriptor.minimumAvailableMemoryBytes, 6_000_000_000)
+    }
+
     func testDocumentedZImageSnapshotIsCompatibleAndSelectable() throws {
         let descriptor = try XCTUnwrap(ModelCatalog.descriptor(for: .zImageTurbo))
         let reference = try XCTUnwrap(descriptor.repository)
@@ -71,6 +80,46 @@ final class ModelCatalogTests: XCTestCase {
             .compatible(profile: descriptor.profile)
         )
         XCTAssertTrue(ModelCatalog.compatibility(for: snapshot).isSelectable)
+    }
+
+    func testFeaturedCatalogApprovalSupersedesStaleSnapshotDescriptor() throws {
+        let approved = try XCTUnwrap(ModelCatalog.descriptor(for: .ernieImageTurbo))
+        let staleDescriptor = ModelDescriptor(
+            id: approved.id,
+            repository: approved.repository,
+            reviewedRevisionSHA: approved.reviewedRevisionSHA,
+            familyName: approved.familyName,
+            summary: approved.summary,
+            packageVersion: approved.packageVersion,
+            requirements: approved.requirements,
+            profile: approved.profile,
+            minimumAvailableMemoryBytes: approved.minimumAvailableMemoryBytes,
+            licenseApproved: approved.licenseApproved,
+            evaluationApproved: false,
+            minimumOSMajorVersion: approved.minimumOSMajorVersion,
+            supportedDeviceIdentifiers: approved.supportedDeviceIdentifiers,
+            profileApproved: approved.profileApproved,
+            safetyPolicyVersion: approved.safetyPolicyVersion
+        )
+        let snapshot = LocalModelSnapshot(
+            reference: try XCTUnwrap(approved.repository),
+            commitSHA: try XCTUnwrap(approved.reviewedRevisionSHA),
+            folderName: "featured-stale-descriptor",
+            folderURL: URL(fileURLWithPath: "/tmp/featured-stale-descriptor"),
+            files: approved.requirements.map {
+                ModelDownloadFile(
+                    path: $0.fileName,
+                    sizeBytes: $0.expectedByteCount ?? 0,
+                    sha256: $0.sha256,
+                    downloadURL: URL(fileURLWithPath: "/tmp/\($0.fileName)")
+                )
+            },
+            license: "apache-2.0",
+            compatibility: .unknownCustomRepository,
+            descriptor: staleDescriptor
+        )
+
+        XCTAssertEqual(ModelCatalog.compatibility(for: snapshot), .compatible(profile: approved.profile))
     }
 
     func testCustomDownloadedSnapshotsAreIncludedButClosedByDefault() throws {

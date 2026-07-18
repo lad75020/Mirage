@@ -28,7 +28,14 @@ public protocol DeviceCapabilityProviding: Sendable {
 
 public protocol ModelAvailabilityProviding: Sendable {
     func availability(for descriptor: ModelDescriptor) async -> ModelAvailability
+    func availability(for descriptor: ModelDescriptor, revalidateFiles: Bool) async -> ModelAvailability
     func resolve(_ descriptor: ModelDescriptor) async throws -> ResolvedModelFiles
+}
+
+public extension ModelAvailabilityProviding {
+    func availability(for descriptor: ModelDescriptor, revalidateFiles: Bool) async -> ModelAvailability {
+        await availability(for: descriptor)
+    }
 }
 
 public protocol ModelSnapshotStoring: Sendable {

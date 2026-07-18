@@ -30,6 +30,30 @@ final class ImageGenerationViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.saveState, .ready)
     }
 
+    func testGeneratedImageDisplaysWithoutOutputSafetyReview() async {
+        let descriptor = ModelDescriptor.testFixture()
+        let resolver = StubAvailabilityProvider(availabilityByID: [descriptor.id: .available])
+        let generator = StubGenerator()
+        let viewModel = ImageGenerationViewModel(
+            catalog: [descriptor],
+            availabilityProvider: resolver,
+            generator: generator,
+            safetyService: OutputReviewFailingSafetyService(),
+            photoSaver: StubPhotoSaver()
+        )
+        await viewModel.refreshAvailability()
+        await viewModel.selectModel(descriptor.id)
+        viewModel.prompt = "An unrestricted generated image"
+
+        await viewModel.generate()
+
+        guard case .success(let image) = viewModel.state else {
+            return XCTFail("Expected generated image to display without output review")
+        }
+        XCTAssertEqual(image.pngData, onePixelPNG)
+        XCTAssertEqual(viewModel.saveState, .ready)
+    }
+
     func testBlankPromptDoesNotStartGeneration() async {
         let descriptor = ModelDescriptor.testFixture()
         let resolver = StubAvailabilityProvider(availabilityByID: [descriptor.id: .available])
@@ -122,6 +146,14 @@ final class ImageGenerationViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.selectedModelID, descriptor.id)
         let requestCount = await generator.requestCount()
         XCTAssertEqual(requestCount, 2)
+    }
+}
+
+private struct OutputReviewFailingSafetyService: ImageSafetyChecking {
+    func validatePrompt(_ prompt: String) async throws -> String { prompt }
+
+    func validateOutput(_ image: GeneratedImage) async throws -> GeneratedImage {
+        throw ImageSafetyError.analysisUnavailable
     }
 }
 

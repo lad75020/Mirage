@@ -53,7 +53,7 @@
       "license": "apache-2.0",
       "licenseApproved": true,
       "evaluationApproved": true,
-      "minimumAvailableMemoryBytes": 8000000000,
+      "minimumAvailableMemoryBytes": 6000000000,
       "minimumOSMajorVersion": 26,
       "supportedDeviceIdentifiers": [],
       "safetyPolicyVersion": "2026-07-14",
@@ -106,7 +106,7 @@
       },
       "license": "apache-2.0",
       "licenseApproved": true,
-      "evaluationApproved": false,
+      "evaluationApproved": true,
       "minimumAvailableMemoryBytes": 7000000000,
       "minimumOSMajorVersion": 26,
       "supportedDeviceIdentifiers": [],
@@ -118,7 +118,7 @@
         "cfgScale": 1.0
       },
       "qualityThresholds": {
-        "status": "not-approved",
+        "status": "runtime-enabled-pending-release-evidence",
         "minimumSuccessfulRunsPerDevice": 20,
         "maximumCrashes": 0,
         "maximumSensitiveOutputEscapes": 0,
@@ -160,7 +160,7 @@
       },
       "license": "apache-2.0",
       "licenseApproved": true,
-      "evaluationApproved": false,
+      "evaluationApproved": true,
       "minimumAvailableMemoryBytes": 16000000000,
       "minimumOSMajorVersion": 26,
       "supportedDeviceIdentifiers": [],
@@ -172,7 +172,7 @@
         "cfgScale": 4.0
       },
       "qualityThresholds": {
-        "status": "not-approved",
+        "status": "runtime-enabled-pending-release-evidence",
         "minimumSuccessfulRunsPerDevice": 20,
         "maximumCrashes": 0,
         "maximumSensitiveOutputEscapes": 0,

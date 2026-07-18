@@ -51,9 +51,21 @@ final class ModelStoreTests: XCTestCase {
         let store = try ModelStore(documentsURL: documents, availableSpaceProvider: { 10_000 })
         let staging = try await store.stagingURL(for: reference)
         try data.write(to: staging.appendingPathComponent("model.gguf"))
+        let verification = try VerifiedDownloadManifest(plan: plan, rootURL: staging)
+        try JSONEncoder().encode(verification).write(
+            to: staging.appendingPathComponent(VerifiedDownloadManifest.fileName),
+            options: [.atomic]
+        )
 
         let snapshot = try await store.promote(plan: plan, from: staging)
         let refreshed = await store.refreshSnapshots()
+
+        XCTAssertFalse(FileManager.default.fileExists(atPath: staging.path))
+        XCTAssertFalse(
+            FileManager.default.fileExists(
+                atPath: snapshot.folderURL.appendingPathComponent(VerifiedDownloadManifest.fileName).path
+            )
+        )
 
         XCTAssertTrue(snapshot.folderName.hasPrefix("custom--publicmodel-"))
         XCTAssertEqual(refreshed.first?.compatibility, .unknownCustomRepository)

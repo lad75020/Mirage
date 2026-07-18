@@ -1,6 +1,5 @@
 import Observation
 import SwiftUI
-import UIKit
 
 struct ImageGenerationView: View {
     @Bindable var viewModel: ImageGenerationViewModel
@@ -22,9 +21,9 @@ struct ImageGenerationView: View {
                 .padding(.vertical, 24)
                 .frame(maxWidth: .infinity)
             }
-            .background(Color(uiColor: .systemGroupedBackground).ignoresSafeArea())
+            .background(PlatformAppearance.groupedBackground.ignoresSafeArea())
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: .primaryAction) {
                     NavigationLink {
                         ImageGenerationModelSettingsView(viewModel: viewModel)
                     } label: {
@@ -60,9 +59,9 @@ struct ImageGenerationView: View {
     private var resultCard: some View {
         Group {
             if let generatedImage = viewModel.state.currentImage,
-               let image = UIImage(data: generatedImage.pngData) {
+               let image = Image(platformImageData: generatedImage.pngData) {
                 VStack(alignment: .leading, spacing: 12) {
-                    Image(uiImage: image)
+                    image
                         .resizable()
                         .scaledToFit()
                         .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
@@ -91,7 +90,7 @@ struct ImageGenerationView: View {
         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
         .overlay {
             RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .stroke(Color(uiColor: .separator).opacity(0.35), lineWidth: 1)
+                .stroke(PlatformAppearance.separator.opacity(0.35), lineWidth: 1)
         }
     }
 
@@ -104,7 +103,7 @@ struct ImageGenerationView: View {
             sendButton
         }
         .padding(20)
-        .background(Color(uiColor: .secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .background(PlatformAppearance.secondaryGroupedBackground, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
     }
 
     private var selectedModelSummary: some View {
@@ -140,7 +139,7 @@ struct ImageGenerationView: View {
                 .frame(minHeight: 112)
                 .padding(10)
                 .scrollContentBackground(.hidden)
-                .background(Color(uiColor: .tertiarySystemFill), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                .background(PlatformAppearance.tertiaryFill, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                 .accessibilityLabel("Image prompt")
                 .accessibilityIdentifier("Image prompt")
             if let validationMessage = viewModel.validationMessage {
@@ -212,7 +211,7 @@ struct ImageGenerationView: View {
                 .accessibilityLabel("Saved to Photos")
         case .denied:
             Button("Open Settings", systemImage: "gear") {
-                if let url = URL(string: UIApplication.openSettingsURLString) {
+                if let url = PlatformAppearance.photoPrivacySettingsURL {
                     openURL(url)
                 }
             }

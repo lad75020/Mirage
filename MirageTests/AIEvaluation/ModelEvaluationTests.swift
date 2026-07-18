@@ -80,10 +80,7 @@ final class ModelEvaluationTests: XCTestCase {
             XCTAssertEqual(candidate.profile.height, descriptor.profile.height)
             XCTAssertEqual(candidate.profile.steps, descriptor.profile.steps)
             XCTAssertEqual(candidate.profile.cfgScale, descriptor.profile.cfgScale)
-            XCTAssertEqual(
-                candidate.evaluationApproved,
-                candidate.id == ModelID.zImageTurbo.rawValue
-            )
+            XCTAssertTrue(candidate.evaluationApproved)
             XCTAssertFalse(candidate.releaseBlockers.isEmpty)
             XCTAssertEqual(Set(candidate.files.map(\.name)), Set(descriptor.requirements.map(\.fileName)))
             XCTAssertEqual(Set(candidate.files.map(\.sha256)), Set(descriptor.requirements.compactMap(\.sha256)))
@@ -92,7 +89,7 @@ final class ModelEvaluationTests: XCTestCase {
         }
         XCTAssertEqual(
             manifest.models.filter(\.evaluationApproved).map(\.id),
-            [ModelID.zImageTurbo.rawValue]
+            ModelCatalog.entries.map { $0.id.rawValue }
         )
     }
 
