@@ -88,6 +88,10 @@ const char* mirage_version(void);
 /// immediately after their final generation phase.
 bool mirage_releases_component_weights_after_use(void);
 
+/// True when Chroma's unsupported DiT-mask + flash-attention combination is
+/// disabled while flash attention remains available to other architectures.
+bool mirage_chroma_uses_safe_dit_mask_configuration(void);
+
 // MARK: - Progress callback
 
 /// Called by the sampler once per denoising step. `step` is 1-indexed (1..steps),

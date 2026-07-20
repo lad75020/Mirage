@@ -7,6 +7,11 @@ final class ImageGenerationPerformanceTests: XCTestCase {
     func testNativeEngineReleasesComponentWeightsBetweenGenerationPhases() {
         XCTAssertTrue(Mirage.releasesComponentWeightsAfterUse)
     }
+
+    func testNativeEngineAdvertisesChromaSafeContextConfiguration() {
+        XCTAssertTrue(Mirage.chromaUsesSafeDitMaskConfiguration)
+    }
+
     func testCatalogAndPromptPolicyStayLightweight() {
         measure {
             for _ in 0..<1_000 {

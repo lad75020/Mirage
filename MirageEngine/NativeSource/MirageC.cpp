@@ -79,27 +79,13 @@ void mirage_ggml_log_cb(enum ggml_log_level level, const char* text, void* /*dat
 
 bool g_log_cb_installed = false;
 
-} // namespace
+// stable-diffusion.cpp does not support using Chroma's DiT mask with flash
+// attention. Chroma produces broken (often white) images when both are on.
+// The option is Chroma-only, so disabling it leaves flash attention available
+// to every other supported architecture.
+constexpr bool kChromaUseDitMask = false;
 
-extern "C" mirage_ctx* mirage_ctx_create(const mirage_model_paths* paths) {
-    if (!paths || !paths->diffusion_model_path) {
-        set_last_error("mirage_ctx_create: diffusion_model_path is required");
-        return nullptr;
-    }
-
-    if (!g_log_cb_installed) {
-        sd_set_log_callback(mirage_sd_log_cb, nullptr);
-        ggml_log_set(mirage_ggml_log_cb, nullptr);
-        g_log_cb_installed = true;
-    }
-
-    // Build a default sd_ctx_params and override only what we expose.
-    sd_ctx_params_t p;
-    sd_ctx_params_init(&p);
-    p.diffusion_model_path = paths->diffusion_model_path;
-    if (paths->vae_path) { p.vae_path = paths->vae_path; }
-    if (paths->llm_path) { p.llm_path = paths->llm_path; }
-
+void apply_mirage_context_configuration(sd_ctx_params_t& p) {
     // Memory + speed tuning. Read the inline notes — each flag is the result
     // of a real iOS-only failure mode (jetsam, missing kernels, dangling
     // freed params on second generation, etc.).
@@ -146,10 +132,35 @@ extern "C" mirage_ctx* mirage_ctx_create(const mirage_model_paths* paths) {
     p.keep_vae_on_cpu         = true;
     p.diffusion_flash_attn    = true;
     p.diffusion_conv_direct   = true;
+    p.chroma_use_dit_mask     = kChromaUseDitMask;
     // Mirage's app creates a fresh engine for each generation. Release each
     // component's parameter buffer after its final phase (text encoding,
     // denoising, then VAE decoding) so multi-GB weights do not overlap.
     p.free_params_immediately = true;
+}
+
+} // namespace
+
+extern "C" mirage_ctx* mirage_ctx_create(const mirage_model_paths* paths) {
+    if (!paths || !paths->diffusion_model_path) {
+        set_last_error("mirage_ctx_create: diffusion_model_path is required");
+        return nullptr;
+    }
+
+    if (!g_log_cb_installed) {
+        sd_set_log_callback(mirage_sd_log_cb, nullptr);
+        ggml_log_set(mirage_ggml_log_cb, nullptr);
+        g_log_cb_installed = true;
+    }
+
+    // Build a default sd_ctx_params and override only what we expose.
+    sd_ctx_params_t p;
+    sd_ctx_params_init(&p);
+    p.diffusion_model_path = paths->diffusion_model_path;
+    if (paths->vae_path) { p.vae_path = paths->vae_path; }
+    if (paths->llm_path) { p.llm_path = paths->llm_path; }
+
+    apply_mirage_context_configuration(p);
 
     // Log the resolved params before handing them to sd.cpp so we can verify
     // from the device console which knobs actually took effect.
@@ -259,6 +270,13 @@ extern "C" const char* mirage_version(void) {
 
 extern "C" bool mirage_releases_component_weights_after_use(void) {
     return true;
+}
+
+extern "C" bool mirage_chroma_uses_safe_dit_mask_configuration(void) {
+    sd_ctx_params_t p;
+    sd_ctx_params_init(&p);
+    apply_mirage_context_configuration(p);
+    return p.diffusion_flash_attn && !p.chroma_use_dit_mask;
 }
 
 // MARK: - Progress callback

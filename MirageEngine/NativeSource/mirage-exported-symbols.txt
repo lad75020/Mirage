@@ -14,4 +14,5 @@ _mirage_free_image
 _mirage_last_error
 _mirage_version
 _mirage_releases_component_weights_after_use
+_mirage_chroma_uses_safe_dit_mask_configuration
 _mirage_set_progress_callback

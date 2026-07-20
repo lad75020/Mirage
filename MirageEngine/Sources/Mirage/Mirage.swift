@@ -32,6 +32,12 @@ public enum Mirage {
         mirage_releases_component_weights_after_use()
     }
 
+    /// Whether the native context setup disables Chroma's unsupported DiT
+    /// mask when flash attention is enabled.
+    public static var chromaUsesSafeDitMaskConfiguration: Bool {
+        mirage_chroma_uses_safe_dit_mask_configuration()
+    }
+
     /// Install a global progress callback fired once per denoising step.
     /// `step` is 1-indexed, `total` is the configured `steps`, `elapsed` is
     /// seconds since the previous step (the first call also includes any
