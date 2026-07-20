@@ -500,16 +500,27 @@ public actor ModelStore: ModelSnapshotStoring {
     }
 
     private func sha256(of url: URL) throws -> String {
-        let handle = try FileHandle(forReadingFrom: url)
-        defer { try? handle.close() }
-        var hasher = SHA256()
-        while true {
-            let data = try handle.read(upToCount: 4 * 1_024 * 1_024) ?? Data()
-            if data.isEmpty { break }
-            hasher.update(data: data)
-        }
-        return hasher.finalize().map { String(format: "%02x", $0) }.joined()
+        try boundedFileSHA256(of: url)
     }
+}
+
+/// Computes a file digest without retaining Foundation read buffers for the
+/// duration of a synchronous hash operation.
+func boundedFileSHA256(of url: URL) throws -> String {
+    let handle = try FileHandle(forReadingFrom: url)
+    defer { try? handle.close() }
+
+    var hasher = SHA256()
+    let chunkSize = 4 * 1_024 * 1_024
+    while try autoreleasepool(invoking: {
+        guard let data = try handle.read(upToCount: chunkSize), !data.isEmpty else {
+            return false
+        }
+        hasher.update(data: data)
+        return true
+    }) {}
+
+    return hasher.finalize().map { String(format: "%02x", $0) }.joined()
 }
 
 private struct SnapshotMetadata: Codable {

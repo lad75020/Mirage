@@ -91,7 +91,7 @@ public enum ModelCatalog {
                 )
             ],
             profile: .init(width: 1024, height: 1024, steps: 8, cfgScale: 1, negativePrompt: safetyNegativePrompt),
-            minimumMemory: 7_000_000_000,
+            minimumMemory: 6_000_000_000,
             licenseApproved: true,
             evaluationApproved: true
         ),
@@ -121,7 +121,7 @@ public enum ModelCatalog {
                 )
             ],
             profile: .init(width: 1024, height: 1024, steps: 28, cfgScale: 4, negativePrompt: safetyNegativePrompt),
-            minimumMemory: 16_000_000_000,
+            minimumMemory: 6_000_000_000,
             licenseApproved: true,
             evaluationApproved: true
         )

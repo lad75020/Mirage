@@ -211,14 +211,6 @@ public actor ModelFileResolver: ModelAvailabilityProviding {
     }
 
     private func sha256(of url: URL) throws -> String {
-        let handle = try FileHandle(forReadingFrom: url)
-        defer { try? handle.close() }
-        var hasher = SHA256()
-        while true {
-            let data = try handle.read(upToCount: 4 * 1_024 * 1_024) ?? Data()
-            if data.isEmpty { break }
-            hasher.update(data: data)
-        }
-        return hasher.finalize().map { String(format: "%02x", $0) }.joined()
+        try boundedFileSHA256(of: url)
     }
 }

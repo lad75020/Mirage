@@ -1,3 +1,4 @@
+import Darwin
 import Foundation
 import XCTest
 @testable import MirageApp
@@ -205,4 +206,125 @@ final class ModelStoreTests: XCTestCase {
         let refreshedSnapshot = await store.refreshSnapshots().first
         XCTAssertEqual(refreshedSnapshot?.compatibility, .unknownCustomRepository)
     }
+
+    func testRefreshSnapshotsValidatesLargeSnapshotWithoutExcessiveFootprint() async throws {
+        let reference = try ModelRepositoryReference("custom/LargeValidationFixture")
+        let store = try ModelStore(documentsURL: documents)
+        let folderName = ModelStore.safeFolderName(for: reference)
+        let folderURL = store.modelRootURL.appendingPathComponent(folderName, isDirectory: true)
+        let modelURL = folderURL.appendingPathComponent("model.gguf")
+        let modelSize = Int64(256 * 1_024 * 1_024)
+        let expectedHash = "a6d72ac7690f53be6ae46ba88506bd97302a093f7108472bd9efc3cefda06484"
+        let file = ModelDownloadFile(
+            path: "model.gguf",
+            sizeBytes: modelSize,
+            sha256: expectedHash,
+            downloadURL: URL(string: "https://huggingface.co/custom/LargeValidationFixture/resolve/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/model.gguf")!
+        )
+
+        try FileManager.default.createDirectory(at: folderURL, withIntermediateDirectories: true)
+        try createSparseZeroFilledFile(at: modelURL, byteCount: modelSize)
+        let metadata = SnapshotMetadataFixture(
+            owner: reference.owner,
+            repository: reference.repository,
+            commitSHA: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            folderName: folderName,
+            license: "apache-2.0",
+            files: [file]
+        )
+        try JSONEncoder().encode(metadata).write(
+            to: folderURL.appendingPathComponent(".mirage-snapshot.json"),
+            options: [.atomic]
+        )
+
+        let baselineFootprint = try currentProcessFootprint()
+        let sampler = ProcessFootprintSampler()
+        let samplingTask = Task.detached(priority: .userInitiated) {
+            try await sampler.samplePeak()
+        }
+        await sampler.waitUntilStarted()
+
+        let snapshots = await store.refreshSnapshots()
+
+        await sampler.stop()
+        let peakFootprint = try await samplingTask.value
+        let footprintGrowth = max(0, peakFootprint - baselineFootprint)
+
+        XCTAssertEqual(snapshots.count, 1)
+        XCTAssertEqual(snapshots.first?.reference, reference)
+        XCTAssertEqual(snapshots.first?.files, [file])
+        XCTAssertEqual(snapshots.first?.compatibility, .unknownCustomRepository)
+        XCTAssertLessThan(
+            footprintGrowth,
+            Int64(96 * 1_024 * 1_024),
+            "Refreshing a valid 256 MiB snapshot should not retain per-chunk read buffers. Growth: \(footprintGrowth) bytes."
+        )
+    }
+}
+
+private struct SnapshotMetadataFixture: Encodable {
+    let owner: String
+    let repository: String
+    let commitSHA: String
+    let folderName: String
+    let license: String?
+    let files: [ModelDownloadFile]
+    let descriptor: ModelDescriptor? = nil
+}
+
+private actor ProcessFootprintSampler {
+    private var isSampling = true
+    private var started = false
+    private var startWaiters: [CheckedContinuation<Void, Never>] = []
+
+    func samplePeak() async throws -> Int64 {
+        started = true
+        startWaiters.forEach { $0.resume() }
+        startWaiters.removeAll()
+
+        var peak = try currentProcessFootprint()
+        while isSampling {
+            peak = max(peak, try currentProcessFootprint())
+            await Task.yield()
+        }
+        return peak
+    }
+
+    func waitUntilStarted() async {
+        guard !started else { return }
+        await withCheckedContinuation { continuation in
+            startWaiters.append(continuation)
+        }
+    }
+
+    func stop() {
+        isSampling = false
+    }
+}
+
+private enum ProcessFootprintError: Error {
+    case taskInfo(kern_return_t)
+}
+
+private func currentProcessFootprint() throws -> Int64 {
+    var info = task_vm_info_data_t()
+    var count = mach_msg_type_number_t(MemoryLayout<task_vm_info_data_t>.size / MemoryLayout<integer_t>.size)
+    let result = withUnsafeMutablePointer(to: &info) { pointer in
+        pointer.withMemoryRebound(to: integer_t.self, capacity: Int(count)) {
+            task_info(mach_task_self_, task_flavor_t(TASK_VM_INFO), $0, &count)
+        }
+    }
+    guard result == KERN_SUCCESS else {
+        throw ProcessFootprintError.taskInfo(result)
+    }
+    return Int64(info.phys_footprint)
+}
+
+private func createSparseZeroFilledFile(at url: URL, byteCount: Int64) throws {
+    precondition(byteCount > 0)
+    FileManager.default.createFile(atPath: url.path, contents: nil)
+    let handle = try FileHandle(forWritingTo: url)
+    defer { try? handle.close() }
+    try handle.seek(toOffset: UInt64(byteCount - 1))
+    try handle.write(contentsOf: Data([0]))
 }

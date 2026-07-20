@@ -60,6 +60,7 @@
 		A2124F8A5D9B736B03BDFDD4 /* AvailableMemoryProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE98AB21C46383A0665385E7 /* AvailableMemoryProvider.swift */; };
 		A64947CBBDBFFE344B3D534F /* ImageGenerationViewModelSaveTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11D1FB30EF3BE18ECD1BC974 /* ImageGenerationViewModelSaveTests.swift */; };
 		A72ECDDF5E46C17CE474C3B6 /* TestFixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = 192DCC911B7C2A49CD668980 /* TestFixtures.swift */; };
+		A8A9B0C1D2E3F40516273849 /* Mirage/MirageModelStorageSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8A9B0C1D2E3F40516273848 /* Mirage/MirageModelStorageSettings.swift */; };
 		A9BEF46FFB7A1AA9EB5300E0 /* ImageGenerationSecurityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E6D3BA289F7B1C9971F1DB7 /* ImageGenerationSecurityTests.swift */; };
 		AB526E4C90E39E5CB079A9EF /* AppMetadataTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77EBBEE20F5664A9A34CB356 /* AppMetadataTests.swift */; };
 		AE8A1308F72A0A1DEC3F679B /* ModelAvailability+Presentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5279DD4B0CA093EF66AAB0E5 /* ModelAvailability+Presentation.swift */; };
@@ -74,7 +75,6 @@
 		D28BB79C9D227FFA4A8ABA5E /* PlatformSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DE711093009AD5600226857 /* PlatformSupport.swift */; };
 		D2CE6E5AD729D210383803AB /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7ED71C6A40CD7CD95B48E100 /* Assets.xcassets */; };
 		D60F52CA3021E6C32077ECEE /* Mirage/MirageMacApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DE7110B3009AD9D00226857 /* Mirage/MirageMacApp.swift */; };
-		A8A9B0C1D2E3F40516273849 /* MirageModelStorageSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8A9B0C1D2E3F40516273848 /* MirageModelStorageSettings.swift */; };
 		D6F8D40AB4A2CEF2620816BB /* ImageGenerationState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21A7887949DF177C39CEE4F5 /* ImageGenerationState.swift */; };
 		DC0D40A94704DEE45984661D /* HuggingFaceModelDownloaderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A85A0A59ABF28BB1208A70C /* HuggingFaceModelDownloaderTests.swift */; };
 		DFCB50F2D7ACF8F50473FD30 /* ModelCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = A955EFC158227CE81D0C2538 /* ModelCatalog.swift */; };
@@ -138,7 +138,6 @@
 		4DE711093009AD5600226857 /* PlatformSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlatformSupport.swift; sourceTree = "<group>"; };
 		4DE7110B3009AD9D00226857 /* Mirage/MirageMacApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mirage/MirageMacApp.swift; sourceTree = "<group>"; };
 		4DE7110C3009AD9F00226857 /* Mirage/MirageMac.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Mirage/MirageMac.entitlements; sourceTree = "<group>"; };
-		A8A9B0C1D2E3F40516273848 /* MirageModelStorageSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mirage/MirageModelStorageSettings.swift; sourceTree = "<group>"; };
 		5279DD4B0CA093EF66AAB0E5 /* ModelAvailability+Presentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ModelAvailability+Presentation.swift"; sourceTree = "<group>"; };
 		5299B5067A5BD317C5C61611 /* ImageGenerationViewModelModelSelectionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageGenerationViewModelModelSelectionTests.swift; sourceTree = "<group>"; };
 		5CED3A2A740D98E9D8719B67 /* MirageInferenceServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MirageInferenceServiceTests.swift; sourceTree = "<group>"; };
@@ -154,6 +153,7 @@
 		93DB65F2870DF1C11F19377B /* ModelFileResolverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelFileResolverTests.swift; sourceTree = "<group>"; };
 		94CB9B574EF018B4089DFACD /* ModelRepositoryReferenceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelRepositoryReferenceTests.swift; sourceTree = "<group>"; };
 		A62901EA2792EEF5942AADB1 /* HuggingFaceModelDownloader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HuggingFaceModelDownloader.swift; sourceTree = "<group>"; };
+		A8A9B0C1D2E3F40516273848 /* Mirage/MirageModelStorageSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mirage/MirageModelStorageSettings.swift; sourceTree = "<group>"; };
 		A955EFC158227CE81D0C2538 /* ModelCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelCatalog.swift; sourceTree = "<group>"; };
 		BFDF8585986A3D026C1C04E7 /* ImageGenerationDependencies.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageGenerationDependencies.swift; sourceTree = "<group>"; };
 		C49858EBF96EC82B97B5F642 /* ModelEvaluationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelEvaluationTests.swift; sourceTree = "<group>"; };
@@ -333,7 +333,7 @@
 				D5896CEF5FF055327E209042 /* MirageUITests */,
 				3E514C3C34FE85763C0BDEC4 /* Products */,
 				4DE7110B3009AD9D00226857 /* Mirage/MirageMacApp.swift */,
-				A8A9B0C1D2E3F40516273848 /* MirageModelStorageSettings.swift */,
+				A8A9B0C1D2E3F40516273848 /* Mirage/MirageModelStorageSettings.swift */,
 				4DE7110C3009AD9F00226857 /* Mirage/MirageMac.entitlements */,
 				98DC992B9A1053689D1BD9DD /* Frameworks */,
 			);
@@ -444,7 +444,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 1430;
+				LastUpgradeCheck = 2660;
 				TargetAttributes = {
 					54CB580AD68E43457B824B4F = {
 						TestTargetID = 4A359C5F6C78BA5B0561E815;
@@ -606,7 +606,7 @@
 				96DC6DC5992D503479F1279E /* PreviewDependencies.swift in Sources */,
 				589595438C638D7E6C799739 /* ImageGenerationModelSettingsView.swift in Sources */,
 				D60F52CA3021E6C32077ECEE /* Mirage/MirageMacApp.swift in Sources */,
-				A8A9B0C1D2E3F40516273849 /* MirageModelStorageSettings.swift in Sources */,
+				A8A9B0C1D2E3F40516273849 /* Mirage/MirageModelStorageSettings.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -630,7 +630,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = arm64;
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIconMac;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = NO;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
@@ -640,7 +640,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = RJYVGK9S3F;
+				DEAD_CODE_STRIPPING = YES;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_INCOMING_NETWORK_CONNECTIONS = NO;
@@ -678,7 +678,6 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGNING_ALLOWED = NO;
-				DEVELOPMENT_TEAM = RJYVGK9S3F;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -703,7 +702,6 @@
 				CODE_SIGN_ENTITLEMENTS = Mirage/Mirage.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = RJYVGK9S3F;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Mirage;
 				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
@@ -738,7 +736,6 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGNING_ALLOWED = NO;
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
-				DEVELOPMENT_TEAM = RJYVGK9S3F;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -758,7 +755,6 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGNING_ALLOWED = NO;
-				DEVELOPMENT_TEAM = RJYVGK9S3F;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -777,6 +773,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -808,6 +805,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = RJYVGK9S3F;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -831,6 +829,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_STRICT_CONCURRENCY = complete;
@@ -848,7 +847,6 @@
 				CODE_SIGN_ENTITLEMENTS = Mirage/Mirage.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = RJYVGK9S3F;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Mirage;
 				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
@@ -881,6 +879,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -912,6 +911,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = RJYVGK9S3F;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -928,6 +928,7 @@
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_STRICT_CONCURRENCY = complete;
@@ -941,7 +942,6 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGNING_ALLOWED = NO;
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
-				DEVELOPMENT_TEAM = RJYVGK9S3F;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -960,7 +960,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = arm64;
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIconMac;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = NO;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
@@ -970,7 +970,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = RJYVGK9S3F;
+				DEAD_CODE_STRIPPING = YES;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_INCOMING_NETWORK_CONNECTIONS = NO;
