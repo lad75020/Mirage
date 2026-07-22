@@ -30,6 +30,57 @@ final class ImageGenerationViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.saveState, .ready)
     }
 
+    func testSelectedGenerationOptionsAreSnapshottedWithModelGuidance() async {
+        let modelProfile = GenerationProfile(
+            width: 1024,
+            height: 1024,
+            steps: 8,
+            cfgScale: 4.5,
+            negativePrompt: "model safety guidance"
+        )
+        let descriptor = ModelDescriptor.testFixture(profile: modelProfile)
+        let generator = StubGenerator()
+        let viewModel = ImageGenerationViewModel(
+            catalog: [descriptor],
+            availabilityProvider: StubAvailabilityProvider(availabilityByID: [descriptor.id: .available]),
+            generator: generator,
+            safetyService: PassingSafetyService(),
+            photoSaver: StubPhotoSaver()
+        )
+        await viewModel.refreshAvailability()
+        await viewModel.selectModel(descriptor.id)
+        viewModel.inferenceSteps = 37
+        viewModel.pictureSize = .init(width: 768, height: 1024)
+        viewModel.prompt = "A portrait of a lighthouse"
+
+        await viewModel.generate()
+
+        let request = await generator.requests.last
+        XCTAssertEqual(request?.profile.width, 768)
+        XCTAssertEqual(request?.profile.height, 1024)
+        XCTAssertEqual(request?.profile.steps, 37)
+        XCTAssertEqual(request?.profile.cfgScale, 4.5)
+        XCTAssertEqual(request?.profile.negativePrompt, "model safety guidance")
+    }
+
+    func testSelectionInitializesGenerationOptionsFromModelProfile() async {
+        let profile = GenerationProfile(width: 640, height: 832, steps: 23, cfgScale: 2)
+        let descriptor = ModelDescriptor.testFixture(profile: profile)
+        let viewModel = ImageGenerationViewModel(
+            catalog: [descriptor],
+            availabilityProvider: StubAvailabilityProvider(availabilityByID: [descriptor.id: .available]),
+            generator: StubGenerator(),
+            safetyService: PassingSafetyService(),
+            photoSaver: StubPhotoSaver()
+        )
+
+        await viewModel.selectModel(descriptor.id)
+
+        XCTAssertEqual(viewModel.inferenceSteps, 23)
+        XCTAssertEqual(viewModel.pictureSize, .init(width: 640, height: 832))
+        XCTAssertEqual(viewModel.availablePictureSizes.first, .init(width: 640, height: 832))
+    }
+
     func testGeneratedImageDisplaysWithoutOutputSafetyReview() async {
         let descriptor = ModelDescriptor.testFixture()
         let resolver = StubAvailabilityProvider(availabilityByID: [descriptor.id: .available])

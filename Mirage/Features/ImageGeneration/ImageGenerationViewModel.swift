@@ -9,6 +9,33 @@ import UIKit
 @MainActor
 @Observable
 public final class ImageGenerationViewModel {
+    public struct PictureSize: Identifiable, Hashable, Sendable {
+        public let width: Int
+        public let height: Int
+
+        public var id: String { "\(width)x\(height)" }
+        public var label: String { "\(width) × \(height)" }
+
+        public init(width: Int, height: Int) {
+            self.width = width
+            self.height = height
+        }
+    }
+
+    public static let pictureSizePresets = [
+        PictureSize(width: 512, height: 512),
+        PictureSize(width: 768, height: 768),
+        PictureSize(width: 1024, height: 1024),
+        PictureSize(width: 768, height: 1024),
+        PictureSize(width: 1024, height: 768)
+    ]
+
+    public var availablePictureSizes: [PictureSize] {
+        Self.pictureSizePresets.contains(pictureSize)
+            ? Self.pictureSizePresets
+            : [pictureSize] + Self.pictureSizePresets
+    }
+
     public var prompt = "" {
         didSet {
             if prompt.count > 1_000 {
@@ -19,6 +46,8 @@ public final class ImageGenerationViewModel {
     }
     public private(set) var state: ImageGenerationState = .idle
     public private(set) var selectedModelID: ModelID?
+    public var inferenceSteps = 1
+    public var pictureSize = PictureSize(width: 512, height: 512)
     public private(set) var availabilityByID: [ModelID: ModelAvailability]
     public private(set) var validationMessage: String?
     public private(set) var saveState: SaveState = .hidden
@@ -168,6 +197,11 @@ public final class ImageGenerationViewModel {
             return
         }
         selectedModelID = id
+        inferenceSteps = min(max(descriptor.profile.steps, 1), 50)
+        pictureSize = PictureSize(
+            width: descriptor.profile.width,
+            height: descriptor.profile.height
+        )
         validationMessage = nil
     }
 
@@ -320,10 +354,17 @@ public final class ImageGenerationViewModel {
             return
         }
 
+        let requestProfile = GenerationProfile(
+            width: pictureSize.width,
+            height: pictureSize.height,
+            steps: inferenceSteps,
+            cfgScale: descriptor.profile.cfgScale,
+            negativePrompt: descriptor.profile.negativePrompt
+        )
         let request = GenerationRequestSnapshot(
             prompt: validatedPrompt,
             modelID: descriptor.id,
-            profile: descriptor.profile
+            profile: requestProfile
         )
         activeRequestID = request.id
         state = .loadingModel(requestID: request.id, previousResult: previousResult)

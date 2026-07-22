@@ -99,6 +99,7 @@ struct ImageGenerationView: View {
             selectedModelSummary
             Divider()
             promptSection
+            generationOptionsSection
             statusSection
             sendButton
         }
@@ -149,6 +150,26 @@ struct ImageGenerationView: View {
                     .accessibilityElement(children: .combine)
             }
         }
+    }
+
+    private var generationOptionsSection: some View {
+        GroupBox("Generation options") {
+            VStack(alignment: .leading, spacing: 14) {
+                Stepper(value: $viewModel.inferenceSteps, in: 1...50) {
+                    LabeledContent("Inference steps", value: "\(viewModel.inferenceSteps)")
+                }
+                .accessibilityIdentifier("Inference steps")
+
+                Picker("Picture size", selection: $viewModel.pictureSize) {
+                    ForEach(viewModel.availablePictureSizes) { size in
+                        Text(size.label).tag(size)
+                    }
+                }
+                .accessibilityIdentifier("Picture size")
+            }
+            .padding(.top, 6)
+        }
+        .disabled(viewModel.operationLocked)
     }
 
     @ViewBuilder

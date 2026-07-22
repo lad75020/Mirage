@@ -10,7 +10,8 @@ extension ModelDescriptor {
         requirements: [ModelFileRequirement] = [],
         minimumAvailableMemoryBytes: UInt64 = 0,
         licenseApproved: Bool = true,
-        evaluationApproved: Bool = true
+        evaluationApproved: Bool = true,
+        profile: GenerationProfile = GenerationProfile(width: 1024, height: 1024, steps: 8, cfgScale: 1)
     ) -> ModelDescriptor {
         ModelDescriptor(
             id: id,
@@ -18,7 +19,7 @@ extension ModelDescriptor {
             summary: "Test model",
             packageVersion: "0.2.0",
             requirements: requirements,
-            profile: GenerationProfile(width: 1024, height: 1024, steps: 8, cfgScale: 1),
+            profile: profile,
             minimumAvailableMemoryBytes: minimumAvailableMemoryBytes,
             licenseApproved: licenseApproved,
             evaluationApproved: evaluationApproved

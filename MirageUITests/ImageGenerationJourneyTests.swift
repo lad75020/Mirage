@@ -16,6 +16,8 @@ final class ImageGenerationJourneyTests: XCTestCase {
         XCTAssertTrue(app.buttons["Model settings"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.textViews["Image prompt"].exists)
         XCTAssertTrue(app.buttons["SEND"].exists)
+        XCTAssertTrue(app.steppers["Inference steps"].exists)
+        XCTAssertTrue(app.buttons["Picture size"].exists)
         XCTAssertFalse(app.staticTexts["Files location"].exists)
         XCTAssertFalse(app.buttons["Download jc-builds/Z-Image-Turbo-iOS"].exists)
 
