@@ -13,8 +13,17 @@ public protocol MirageEngineDriving: Sendable {
 
 public actor NativeMirageEngineDriver: MirageEngineDriving {
     private var engine: Engine?
+    private let seedProvider: @Sendable () -> Int64
 
-    public init() {}
+    public init() {
+        seedProvider = {
+            Int64.random(in: 1...999_999)
+        }
+    }
+
+    init(seedProvider: @escaping @Sendable () -> Int64) {
+        self.seedProvider = seedProvider
+    }
 
     public func load(modelID: ModelID, files: ResolvedModelFiles) async throws {
         engine = try Engine(
@@ -48,20 +57,23 @@ public actor NativeMirageEngineDriver: MirageEngineDriving {
         }
         defer { Mirage.setProgressCallback(nil) }
 
-        let image = try await engine.generate(
-            .init(
-                prompt: request.prompt,
-                negativePrompt: request.profile.negativePrompt,
-                width: request.profile.width,
-                height: request.profile.height,
-                steps: request.profile.steps,
-                cfgScale: request.profile.cfgScale
-            )
-        )
+        let image = try await engine.generate(makeNativeRequest(for: request))
         guard let pngData = image.pngData() else {
             throw ImageGenerationFailure.invalidImage
         }
         return pngData
+    }
+
+    func makeNativeRequest(for request: GenerationRequestSnapshot) -> GenerationRequest {
+        GenerationRequest(
+            prompt: request.prompt,
+            negativePrompt: request.profile.negativePrompt,
+            width: request.profile.width,
+            height: request.profile.height,
+            steps: request.profile.steps,
+            cfgScale: request.profile.cfgScale,
+            seed: seedProvider()
+        )
     }
 }
 

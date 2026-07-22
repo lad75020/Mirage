@@ -1,4 +1,5 @@
 import Foundation
+import os
 import XCTest
 @testable import MirageApp
 
@@ -45,6 +46,67 @@ private actor RecordingEngineDriver: MirageEngineDriving {
 }
 
 final class MirageInferenceServiceTests: XCTestCase {
+    func testNativeRequestDrawsFreshSeedForEveryInferenceRequest() async {
+        let seeds = OSAllocatedUnfairLock(initialState: [Int64(17), Int64(999_999)])
+        let driver = NativeMirageEngineDriver(seedProvider: {
+            seeds.withLock { $0.removeFirst() }
+        })
+        let descriptor = ModelDescriptor.testFixture()
+        let request = GenerationRequestSnapshot(
+            prompt: "A calm lake",
+            modelID: descriptor.id,
+            profile: descriptor.profile
+        )
+
+        let first = await driver.makeNativeRequest(for: request)
+        let second = await driver.makeNativeRequest(for: request)
+
+        XCTAssertEqual(first.seed, 17)
+        XCTAssertEqual(second.seed, 999_999)
+    }
+
+    func testNativeRequestForwardsAllSnapshotAndProfileValuesWithBoundedRandomSeed() async {
+        let driver = NativeMirageEngineDriver(seedProvider: { 1 })
+        let profile = GenerationProfile(
+            width: 768,
+            height: 512,
+            steps: 23,
+            cfgScale: 6.5,
+            negativePrompt: "blurry"
+        )
+        let request = GenerationRequestSnapshot(
+            prompt: "A lighthouse in a storm",
+            modelID: .sdxl,
+            profile: profile
+        )
+
+        let nativeRequest = await driver.makeNativeRequest(for: request)
+
+        XCTAssertEqual(nativeRequest.prompt, request.prompt)
+        XCTAssertEqual(nativeRequest.negativePrompt, profile.negativePrompt)
+        XCTAssertEqual(nativeRequest.width, profile.width)
+        XCTAssertEqual(nativeRequest.height, profile.height)
+        XCTAssertEqual(nativeRequest.steps, profile.steps)
+        XCTAssertEqual(nativeRequest.cfgScale, profile.cfgScale)
+        XCTAssertEqual(nativeRequest.seed, 1)
+    }
+
+    func testDefaultNativeSeedsStayWithinInclusiveSupportedRange() async {
+        let driver = NativeMirageEngineDriver()
+        let descriptor = ModelDescriptor.testFixture()
+        let request = GenerationRequestSnapshot(
+            prompt: "A calm lake",
+            modelID: descriptor.id,
+            profile: descriptor.profile
+        )
+
+        for _ in 0..<1_000 {
+            let seed = await driver.makeNativeRequest(for: request).seed
+            XCTAssertNotNil(seed)
+            XCTAssertTrue((1...999_999).contains(seed!))
+        }
+    }
+
     func testSelectionOrListingDoesNotLoadBeforeSend() async throws {
         let resolver = StubAvailabilityProvider(availabilityByID: [.ernieImageTurbo: .available])
         let driver = RecordingEngineDriver()
