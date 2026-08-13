@@ -147,6 +147,27 @@ final class ImageGenerationJourneyTests: XCTestCase {
         XCTAssertTrue(app.descendants(matching: .any)["Download confirmation"].waitForExistence(timeout: 3))
     }
 
+    func testCustomDownloadConfirmationIsPresentedBelowItsInput() {
+        openModelSettings()
+        let custom = app.textFields["Custom model reference"]
+        XCTAssertTrue(custom.waitForExistence(timeout: 5))
+        custom.tap()
+        custom.typeText("jc-builds/Chroma1-HD-iOS")
+
+        let download = app.buttons["Download custom model"]
+        XCTAssertTrue(waitUntilEnabled(download))
+        download.tap()
+        revealDownloadConfirmation()
+
+        let confirmation = app.buttons["Confirm download"]
+        XCTAssertTrue(confirmation.waitForExistence(timeout: 3))
+        XCTAssertGreaterThan(
+            confirmation.frame.minY,
+            custom.frame.maxY,
+            "Custom download confirmation must remain with the custom model input"
+        )
+    }
+
     func testDownloadFailureOffersRetry() {
         launch(with: ["--ui-test-download-failure"])
         openModelSettings()

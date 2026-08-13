@@ -5,6 +5,7 @@ struct ImageGenerationModelSettingsView: View {
     @Bindable var viewModel: ImageGenerationViewModel
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var isAdvancedExpanded = false
+    @State private var submittedCustomReference: ModelRepositoryReference?
 
     var body: some View {
         ScrollView {
@@ -55,8 +56,6 @@ struct ImageGenerationModelSettingsView: View {
                 ForEach(viewModel.featuredReferences, id: \.self) { reference in
                     featuredSourceCard(reference)
                 }
-
-                pendingConfirmation
             }
         }
     }
@@ -79,6 +78,9 @@ struct ImageGenerationModelSettingsView: View {
             Label(downloadStateText(for: reference), systemImage: downloadStateIcon(for: reference))
                 .font(.caption)
                 .foregroundStyle(.secondary)
+            if submittedCustomReference != reference {
+                pendingConfirmation(for: reference)
+            }
         }
         .padding(12)
         .background(PlatformAppearance.tertiaryFill, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
@@ -129,8 +131,9 @@ struct ImageGenerationModelSettingsView: View {
     }
 
     @ViewBuilder
-    private var pendingConfirmation: some View {
-        if let plan = viewModel.pendingDownloadPlan {
+    private func pendingConfirmation(for reference: ModelRepositoryReference) -> some View {
+        if let plan = viewModel.pendingDownloadPlan,
+           plan.revision.reference == reference {
             VStack(alignment: .leading, spacing: 8) {
                 Label("Confirm Download", systemImage: "externaldrive.badge.checkmark")
                     .font(.subheadline.weight(.semibold))
@@ -170,6 +173,7 @@ struct ImageGenerationModelSettingsView: View {
                         .textFieldStyle(.roundedBorder)
                         .accessibilityIdentifier("Custom model reference")
                     Button("Download", systemImage: "arrow.down.circle") {
+                        submittedCustomReference = try? ModelRepositoryReference(viewModel.customReferenceInput)
                         Task { await viewModel.submitCustomReference() }
                     }
                     .buttonStyle(.bordered)
@@ -181,6 +185,9 @@ struct ImageGenerationModelSettingsView: View {
                         .font(.footnote)
                         .foregroundStyle(.red)
                         .accessibilityIdentifier("Custom reference error")
+                }
+                if let submittedCustomReference {
+                    pendingConfirmation(for: submittedCustomReference)
                 }
             }
         }
