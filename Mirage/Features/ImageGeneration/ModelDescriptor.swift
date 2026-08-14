@@ -9,6 +9,7 @@ public enum ModelID: String, CaseIterable, Codable, Identifiable, Sendable {
     case qwenImage
     case ernieImageTurbo
     case zImageTurbo
+    case zImageTurboLiteRT
     case advancedCustom
 
     public var id: String { rawValue }
@@ -23,6 +24,7 @@ public enum ModelID: String, CaseIterable, Codable, Identifiable, Sendable {
         case .qwenImage: "Qwen-Image"
         case .ernieImageTurbo: "ERNIE-Image-Turbo"
         case .zImageTurbo: "Z-Image-Turbo"
+        case .zImageTurboLiteRT: "Z-Image-Turbo (LiteRT)"
         case .advancedCustom: "Advanced Custom Model"
         }
     }
@@ -32,6 +34,27 @@ public enum ModelFileRole: String, Codable, Sendable {
     case diffusionModel
     case vae
     case textEncoder
+    /// Additional graph or asset of a multi-file LiteRT (.tflite) pipeline:
+    /// chunked transformer graphs, embedders, refiners, host tensors, tokenizer.
+    case pipelineComponent
+}
+
+/// Central allowlist for on-device model artifact formats.
+public enum ModelFileFormats {
+    /// Weight/graph containers that may be downloaded and loaded natively.
+    public static let modelExtensions: Set<String> = ["gguf", "safetensors", "tflite"]
+    /// Non-executable pipeline metadata (e.g. tokenizer.json) allowed inside
+    /// a snapshot when referenced by an explicit integrity-checked requirement.
+    public static let metadataExtensions: Set<String> = ["json"]
+
+    public static func isAllowedModelExtension(_ ext: String) -> Bool {
+        modelExtensions.contains(ext.lowercased())
+    }
+
+    public static func isAllowedSnapshotExtension(_ ext: String) -> Bool {
+        let value = ext.lowercased()
+        return modelExtensions.contains(value) || metadataExtensions.contains(value)
+    }
 }
 
 public struct ModelFileRequirement: Equatable, Codable, Sendable {

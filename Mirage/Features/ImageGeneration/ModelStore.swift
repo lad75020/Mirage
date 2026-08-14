@@ -315,7 +315,7 @@ public actor ModelStore: ModelSnapshotStoring {
             guard !["zip", "tar", "gz", "xz", "7z", "rar"].contains(ext) else {
                 throw ModelStoreError.archivePayload(file.path)
             }
-            guard ext == "gguf" || ext == "safetensors" else {
+            guard ModelFileFormats.isAllowedSnapshotExtension(ext) else {
                 throw ModelStoreError.unsafePath(file.path)
             }
             guard file.sizeBytes > 0,
@@ -409,7 +409,7 @@ public actor ModelStore: ModelSnapshotStoring {
         guard !["zip", "tar", "gz", "xz", "7z", "rar"].contains(ext) else {
             throw ModelStoreError.archivePayload(relativePath)
         }
-        guard ext == "gguf" || ext == "safetensors" else {
+        guard ModelFileFormats.isAllowedSnapshotExtension(ext) else {
             throw ModelStoreError.unsafePath(relativePath)
         }
         guard values.isExecutable != true else {

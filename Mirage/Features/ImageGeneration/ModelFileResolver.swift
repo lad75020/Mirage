@@ -159,6 +159,7 @@ public actor ModelFileResolver: ModelAvailabilityProviding {
         var diffusionModel: URL?
         var vae: URL?
         var textEncoder: URL?
+        var pipelineComponents: [URL] = []
         for requirement in descriptor.requirements {
             guard let url = containedURL(for: requirement, descriptor: descriptor) else {
                 throw ModelResolutionError.invalidPath
@@ -167,13 +168,15 @@ public actor ModelFileResolver: ModelAvailabilityProviding {
             case .diffusionModel: diffusionModel = url
             case .vae: vae = url
             case .textEncoder: textEncoder = url
+            case .pipelineComponent: pipelineComponents.append(url)
             }
         }
         guard let diffusionModel else { throw ModelResolutionError.missingFile }
         return ResolvedModelFiles(
             diffusionModel: diffusionModel,
             vae: vae,
-            textEncoder: textEncoder
+            textEncoder: textEncoder,
+            pipelineComponents: pipelineComponents
         )
     }
 
@@ -204,9 +207,11 @@ public actor ModelFileResolver: ModelAvailabilityProviding {
         let value = fileExtension.lowercased()
         switch role {
         case .diffusionModel, .textEncoder:
-            return value == "gguf" || value == "safetensors"
+            return ModelFileFormats.isAllowedModelExtension(value)
         case .vae:
-            return value == "safetensors"
+            return value == "safetensors" || value == "tflite"
+        case .pipelineComponent:
+            return ModelFileFormats.isAllowedSnapshotExtension(value)
         }
     }
 

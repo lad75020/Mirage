@@ -80,9 +80,11 @@ public enum AdvancedModelComposer {
             let ext = URL(fileURLWithPath: file.path).pathExtension.lowercased()
             switch role {
             case .vae:
-                return ext == "safetensors"
+                return ext == "safetensors" || ext == "tflite"
             case .diffusionModel, .textEncoder:
-                return ext == "gguf" || ext == "safetensors"
+                return ModelFileFormats.isAllowedModelExtension(ext)
+            case .pipelineComponent:
+                return ModelFileFormats.isAllowedSnapshotExtension(ext)
             }
         }
         guard !candidates.isEmpty else { throw AdvancedModelComposerError.missingModelFile(label) }

@@ -4,11 +4,25 @@ public struct ResolvedModelFiles: Equatable, Sendable {
     public let diffusionModel: URL
     public let vae: URL?
     public let textEncoder: URL?
+    /// Extra integrity-verified files of a multi-graph pipeline
+    /// (chunked .tflite graphs, host tensors, tokenizer metadata).
+    public let pipelineComponents: [URL]
 
-    public init(diffusionModel: URL, vae: URL? = nil, textEncoder: URL? = nil) {
+    public init(
+        diffusionModel: URL,
+        vae: URL? = nil,
+        textEncoder: URL? = nil,
+        pipelineComponents: [URL] = []
+    ) {
         self.diffusionModel = diffusionModel
         self.vae = vae
         self.textEncoder = textEncoder
+        self.pipelineComponents = pipelineComponents
+    }
+
+    /// Folder containing every resolved file (all files share the snapshot folder).
+    public var folderURL: URL {
+        diffusionModel.deletingLastPathComponent()
     }
 }
 

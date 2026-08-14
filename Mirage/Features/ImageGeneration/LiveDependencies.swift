@@ -29,7 +29,10 @@ enum LiveDependencies {
             let downloader = HuggingFaceModelDownloader()
             return ImageGenerationViewModel(
                 availabilityProvider: resolver,
-                generator: MirageInferenceService(resolver: resolver),
+                generator: MirageInferenceService(
+                    resolver: resolver,
+                    driver: RoutingEngineDriver()
+                ),
                 safetyService: ImageSafetyService(),
                 photoSaver: PhotoLibrarySaver(),
                 downloader: downloader,

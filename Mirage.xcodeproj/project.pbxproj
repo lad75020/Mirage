@@ -34,6 +34,11 @@
 		4D1C27213008012F008ACB12 /* AdvancedModelComposer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D1C27203008012F008ACB12 /* AdvancedModelComposer.swift */; };
 		4D1C2722300C0001008ACB12 /* HuggingFace in Frameworks */ = {isa = PBXBuildFile; productRef = 4D1C2724300C0001008ACB12 /* HuggingFace */; };
 		4D1C2723300C0001008ACB12 /* HuggingFace in Frameworks */ = {isa = PBXBuildFile; productRef = 4D1C2725300C0001008ACB12 /* HuggingFace */; };
+		4D5C4B37302EA31E003A0C17 /* QwenTokenizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B17E5D6F1D24A6B8C3D9E16 /* QwenTokenizer.swift */; };
+		4D5C4B38302EA31E003A0C17 /* SafetensorsFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B17E5D3F1D24A6B8C3D9E13 /* SafetensorsFile.swift */; };
+		4D5C4B39302EA31E003A0C17 /* LiteRTEngineDriver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B17E5DCF1D24A6B8C3D9E1C /* LiteRTEngineDriver.swift */; };
+		4D5C4B3A302EA31E003A0C17 /* ZImageLiteRTPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B17E5D9F1D24A6B8C3D9E19 /* ZImageLiteRTPipeline.swift */; };
+		4D5C4B3B302EA31E003A0C17 /* LiteRTGraph.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B17E5D0F1D24A6B8C3D9E10 /* LiteRTGraph.swift */; };
 		4DE7110A3009AD5600226857 /* PlatformSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DE711093009AD5600226857 /* PlatformSupport.swift */; };
 		5266907581BA72BAE7B45184 /* ImageSafetyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3631E6F88407167DDD1E3228 /* ImageSafetyService.swift */; };
 		54036E32E9D0D91D5DBC38DC /* ModelAvailability+Presentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5279DD4B0CA093EF66AAB0E5 /* ModelAvailability+Presentation.swift */; };
@@ -44,6 +49,17 @@
 		6B631E8266321E51230CA8F2 /* ModelRepositoryReference.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA32265B5E92FDB734755FA4 /* ModelRepositoryReference.swift */; };
 		6C307525C617311DE37872C6 /* ModelStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCC250F965D3EE1C79305148 /* ModelStoreTests.swift */; };
 		6F7F330149408E1CD5CAAE9C /* ModelDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = F963D9348F95C0E314766145 /* ModelDescriptor.swift */; };
+		7B17E5C2F1D24A6B8C3D9E03 /* LiteRTRuntime in Frameworks */ = {isa = PBXBuildFile; productRef = 7B17E5C1F1D24A6B8C3D9E02 /* LiteRTRuntime */; };
+		7B17E5D1F1D24A6B8C3D9E11 /* LiteRTGraph.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B17E5D0F1D24A6B8C3D9E10 /* LiteRTGraph.swift */; };
+		7B17E5D2F1D24A6B8C3D9E12 /* LiteRTGraph.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B17E5D0F1D24A6B8C3D9E10 /* LiteRTGraph.swift */; };
+		7B17E5D4F1D24A6B8C3D9E14 /* SafetensorsFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B17E5D3F1D24A6B8C3D9E13 /* SafetensorsFile.swift */; };
+		7B17E5D5F1D24A6B8C3D9E15 /* SafetensorsFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B17E5D3F1D24A6B8C3D9E13 /* SafetensorsFile.swift */; };
+		7B17E5D7F1D24A6B8C3D9E17 /* QwenTokenizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B17E5D6F1D24A6B8C3D9E16 /* QwenTokenizer.swift */; };
+		7B17E5D8F1D24A6B8C3D9E18 /* QwenTokenizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B17E5D6F1D24A6B8C3D9E16 /* QwenTokenizer.swift */; };
+		7B17E5DAF1D24A6B8C3D9E1A /* ZImageLiteRTPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B17E5D9F1D24A6B8C3D9E19 /* ZImageLiteRTPipeline.swift */; };
+		7B17E5DBF1D24A6B8C3D9E1B /* ZImageLiteRTPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B17E5D9F1D24A6B8C3D9E19 /* ZImageLiteRTPipeline.swift */; };
+		7B17E5DDF1D24A6B8C3D9E1D /* LiteRTEngineDriver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B17E5DCF1D24A6B8C3D9E1C /* LiteRTEngineDriver.swift */; };
+		7B17E5DEF1D24A6B8C3D9E1E /* LiteRTEngineDriver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B17E5DCF1D24A6B8C3D9E1C /* LiteRTEngineDriver.swift */; };
 		7D840E0035B28ED497CC7AAA /* ModelFileResolverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93DB65F2870DF1C11F19377B /* ModelFileResolverTests.swift */; };
 		7DE1111751F6A01CCE349580 /* ModelCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = A955EFC158227CE81D0C2538 /* ModelCatalog.swift */; };
 		8299ACA3946026B277DAA764 /* ImageGenerationViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBA712E4100B5034BAB67EF2 /* ImageGenerationViewModelTests.swift */; };
@@ -144,6 +160,11 @@
 		5F9A7EDCC1A00CBA18186F17 /* Mirage.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Mirage.entitlements; sourceTree = "<group>"; };
 		74A7FA05553F7BB8C771AD8D /* PhotoLibrarySaver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoLibrarySaver.swift; sourceTree = "<group>"; };
 		77EBBEE20F5664A9A34CB356 /* AppMetadataTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppMetadataTests.swift; sourceTree = "<group>"; };
+		7B17E5D0F1D24A6B8C3D9E10 /* LiteRTGraph.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiteRTGraph.swift; sourceTree = "<group>"; };
+		7B17E5D3F1D24A6B8C3D9E13 /* SafetensorsFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafetensorsFile.swift; sourceTree = "<group>"; };
+		7B17E5D6F1D24A6B8C3D9E16 /* QwenTokenizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QwenTokenizer.swift; sourceTree = "<group>"; };
+		7B17E5D9F1D24A6B8C3D9E19 /* ZImageLiteRTPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZImageLiteRTPipeline.swift; sourceTree = "<group>"; };
+		7B17E5DCF1D24A6B8C3D9E1C /* LiteRTEngineDriver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiteRTEngineDriver.swift; sourceTree = "<group>"; };
 		7ED71C6A40CD7CD95B48E100 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		8078F9B88E6AAD40E3B9E06F /* MirageMac.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MirageMac.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8A85A0A59ABF28BB1208A70C /* HuggingFaceModelDownloaderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HuggingFaceModelDownloaderTests.swift; sourceTree = "<group>"; };
@@ -198,6 +219,7 @@
 			files = (
 				4CA455E3CF5FB4A86892CCF7 /* Mirage in Frameworks */,
 				4D1C2723300C0001008ACB12 /* HuggingFace in Frameworks */,
+				7B17E5C2F1D24A6B8C3D9E03 /* LiteRTRuntime in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -273,6 +295,18 @@
 			path = Resources;
 			sourceTree = "<group>";
 		};
+		7B17E5CFF1D24A6B8C3D9E0F /* LiteRT */ = {
+			isa = PBXGroup;
+			children = (
+				7B17E5D0F1D24A6B8C3D9E10 /* LiteRTGraph.swift */,
+				7B17E5D3F1D24A6B8C3D9E13 /* SafetensorsFile.swift */,
+				7B17E5D6F1D24A6B8C3D9E16 /* QwenTokenizer.swift */,
+				7B17E5D9F1D24A6B8C3D9E19 /* ZImageLiteRTPipeline.swift */,
+				7B17E5DCF1D24A6B8C3D9E1C /* LiteRTEngineDriver.swift */,
+			);
+			path = LiteRT;
+			sourceTree = "<group>";
+		};
 		9427F722FF27C09C187EDBD5 /* Mirage */ = {
 			isa = PBXGroup;
 			children = (
@@ -299,6 +333,7 @@
 		C2BE6B85C3116C76DE9D6028 /* ImageGeneration */ = {
 			isa = PBXGroup;
 			children = (
+				7B17E5CFF1D24A6B8C3D9E0F /* LiteRT */,
 				DE98AB21C46383A0665385E7 /* AvailableMemoryProvider.swift */,
 				F704262BFB5F6400C66AA592 /* DeviceCapabilityProvider.swift */,
 				A62901EA2792EEF5942AADB1 /* HuggingFaceModelDownloader.swift */,
@@ -399,6 +434,7 @@
 			packageProductDependencies = (
 				E64E2B68AEB79CFB9B9383AA /* Mirage */,
 				4D1C2725300C0001008ACB12 /* HuggingFace */,
+				7B17E5C1F1D24A6B8C3D9E02 /* LiteRTRuntime */,
 			);
 			productName = MirageApp;
 			productReference = D5E60D0718A0C7C131195768 /* Mirage.app */;
@@ -462,6 +498,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				5AB4E45C1A6247B4BC9EB1A3 /* XCLocalSwiftPackageReference "MirageEngine" */,
+				7B17E5C0F1D24A6B8C3D9E01 /* XCLocalSwiftPackageReference "Vendor/LiteRTRuntime" */,
 				4D86B8C5300AF09D00D2FBA0 /* XCRemoteSwiftPackageReference "swift-huggingface" */,
 			);
 			preferredProjectObjectVersion = 77;
@@ -512,6 +549,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7B17E5D1F1D24A6B8C3D9E11 /* LiteRTGraph.swift in Sources */,
+				7B17E5D4F1D24A6B8C3D9E14 /* SafetensorsFile.swift in Sources */,
+				7B17E5D7F1D24A6B8C3D9E17 /* QwenTokenizer.swift in Sources */,
+				7B17E5DAF1D24A6B8C3D9E1A /* ZImageLiteRTPipeline.swift in Sources */,
+				7B17E5DDF1D24A6B8C3D9E1D /* LiteRTEngineDriver.swift in Sources */,
 				35D48F13BA49545E2F5E5106 /* AppMetadata.swift in Sources */,
 				4DE7110A3009AD5600226857 /* PlatformSupport.swift in Sources */,
 				910B8EEB6DD46C765A5C3973 /* AvailableMemoryProvider.swift in Sources */,
@@ -552,6 +594,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7B17E5D2F1D24A6B8C3D9E12 /* LiteRTGraph.swift in Sources */,
+				7B17E5D5F1D24A6B8C3D9E15 /* SafetensorsFile.swift in Sources */,
+				7B17E5D8F1D24A6B8C3D9E18 /* QwenTokenizer.swift in Sources */,
+				7B17E5DBF1D24A6B8C3D9E1B /* ZImageLiteRTPipeline.swift in Sources */,
+				7B17E5DEF1D24A6B8C3D9E1E /* LiteRTEngineDriver.swift in Sources */,
 				AB526E4C90E39E5CB079A9EF /* AppMetadataTests.swift in Sources */,
 				634BBF2C72EFF6988CB5F754 /* GeneratedImageSafetyEvaluationTests.swift in Sources */,
 				DC0D40A94704DEE45984661D /* HuggingFaceModelDownloaderTests.swift in Sources */,
@@ -600,6 +647,11 @@
 				DFD1F7EADA3300A67E938F9C /* ModelDescriptor.swift in Sources */,
 				251827BFEECA93E5E779C241 /* ModelDownload.swift in Sources */,
 				3C36370D6FD820535B060528 /* ModelFileResolver.swift in Sources */,
+				4D5C4B37302EA31E003A0C17 /* QwenTokenizer.swift in Sources */,
+				4D5C4B38302EA31E003A0C17 /* SafetensorsFile.swift in Sources */,
+				4D5C4B39302EA31E003A0C17 /* LiteRTEngineDriver.swift in Sources */,
+				4D5C4B3A302EA31E003A0C17 /* ZImageLiteRTPipeline.swift in Sources */,
+				4D5C4B3B302EA31E003A0C17 /* LiteRTGraph.swift in Sources */,
 				6B631E8266321E51230CA8F2 /* ModelRepositoryReference.swift in Sources */,
 				99704B636FBA4B580B8A2779 /* ModelStore.swift in Sources */,
 				3ADF4CA6EF7330A6B897E0D2 /* PhotoLibrarySaver.swift in Sources */,
@@ -1058,6 +1110,10 @@
 			isa = XCLocalSwiftPackageReference;
 			relativePath = MirageEngine;
 		};
+		7B17E5C0F1D24A6B8C3D9E01 /* XCLocalSwiftPackageReference "Vendor/LiteRTRuntime" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Vendor/LiteRTRuntime;
+		};
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCRemoteSwiftPackageReference section */
@@ -1086,6 +1142,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 4D86B8C5300AF09D00D2FBA0 /* XCRemoteSwiftPackageReference "swift-huggingface" */;
 			productName = HuggingFace;
+		};
+		7B17E5C1F1D24A6B8C3D9E02 /* LiteRTRuntime */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 7B17E5C0F1D24A6B8C3D9E01 /* XCLocalSwiftPackageReference "Vendor/LiteRTRuntime" */;
+			productName = LiteRTRuntime;
 		};
 		E64E2B68AEB79CFB9B9383AA /* Mirage */ = {
 			isa = XCSwiftPackageProductDependency;

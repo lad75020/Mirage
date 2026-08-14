@@ -25,16 +25,120 @@ public enum ModelCatalog {
     public static let packageVersion = "0.2.0"
 
     public static let zImageReference = try! ModelRepositoryReference(owner: "jc-builds", repository: "Z-Image-Turbo-iOS")
+    public static let zImageLiteRTReference = try! ModelRepositoryReference(owner: "ladparis", repository: "Z-Image-Turbo-LiteRT-iOS")
     public static let ernieReference = try! ModelRepositoryReference(owner: "jc-builds", repository: "ERNIE-Image-Turbo-iOS")
     public static let chromaReference = try! ModelRepositoryReference(owner: "jc-builds", repository: "Chroma1-HD-iOS")
 
     public static let featuredReferences: [ModelRepositoryReference] = [
         zImageReference,
+        zImageLiteRTReference,
         ernieReference,
         chromaReference
     ]
 
     public static let entries: [ModelDescriptor] = [
+        descriptor(
+            .zImageTurboLiteRT,
+            reference: zImageLiteRTReference,
+            reviewedRevisionSHA: "4ba9dc8b01016d4e2d32477a708b2f485232b09e",
+            summary: "Z-Image-Turbo as int8 LiteRT graphs; 256 px on-device pipeline.",
+            requirements: [
+                .init(
+                    role: .textEncoder,
+                    fileName: "qwen_enc.tflite",
+                    expectedByteCount: 3_547_652_208,
+                    sha256: "dcf34ad23b5d821af588d04069e9c791e8acef57353b670a3672d46bce0a1bbb"
+                ),
+                .init(
+                    role: .diffusionModel,
+                    fileName: "zc_main0.tflite",
+                    expectedByteCount: 908_480_960,
+                    sha256: "55c7bf5154ae7ecfd177407e7c1da9a908e171c3a1862d53b02b2e24817a6ecc"
+                ),
+                .init(
+                    role: .vae,
+                    fileName: "zvae.tflite",
+                    expectedByteCount: 50_139_872,
+                    sha256: "7e2a583027096abfe0411d338dcc6df19c2ee7ea33f65df3b1caaa75304cf350"
+                ),
+                .init(
+                    role: .pipelineComponent,
+                    fileName: "zc_main1.tflite",
+                    expectedByteCount: 908_480_960,
+                    sha256: "ee139fa3937cfded45cd251f49615749e3f48084d8da68206ba98ad4ce9a7288"
+                ),
+                .init(
+                    role: .pipelineComponent,
+                    fileName: "zc_main2.tflite",
+                    expectedByteCount: 908_480_960,
+                    sha256: "033019c34fc0c955a208dcf876abc9339fef1f8f8f321dbbce2bb429758ffb80"
+                ),
+                .init(
+                    role: .pipelineComponent,
+                    fileName: "zc_main3.tflite",
+                    expectedByteCount: 908_480_960,
+                    sha256: "ef70c436fa8ae5b30a0830541de0e84ea9dc97133f231a17e24e8b173e02b677"
+                ),
+                .init(
+                    role: .pipelineComponent,
+                    fileName: "zc_main4.tflite",
+                    expectedByteCount: 908_480_960,
+                    sha256: "fc81daaeac09c89966ec916d1b1b5f0852cfeb2cb0457439ee66e8264e69e512"
+                ),
+                .init(
+                    role: .pipelineComponent,
+                    fileName: "zc_main5.tflite",
+                    expectedByteCount: 908_480_960,
+                    sha256: "4b6c24153aa3c825c668ac9310fc1497d029e8d45c1d115714f564d8e200789f"
+                ),
+                .init(
+                    role: .pipelineComponent,
+                    fileName: "zc_final.tflite",
+                    expectedByteCount: 1_295_936,
+                    sha256: "4e1397197950d71b723f2db06834faa65be71c0b8bd54f9d397c69b9f3b0eb56"
+                ),
+                .init(
+                    role: .pipelineComponent,
+                    fileName: "z_embx.tflite",
+                    expectedByteCount: 308_272,
+                    sha256: "ae0da56751ed472bfd8b49cdd5c6fd6dfeed8da0373ab66a2296502d5235926f"
+                ),
+                .init(
+                    role: .pipelineComponent,
+                    fileName: "z_embc.tflite",
+                    expectedByteCount: 9_906_096,
+                    sha256: "7a5e74bc94aa4ad22f00625f5f91f8a667e85fc4b363db6016f4cdd6899c97a9"
+                ),
+                .init(
+                    role: .pipelineComponent,
+                    fileName: "z_refx.tflite",
+                    expectedByteCount: 363_386_160,
+                    sha256: "0d5032718a72607ae2f7ee7ae27d7c40e2ded6b119e79b4a12e9d6099da50e37"
+                ),
+                .init(
+                    role: .pipelineComponent,
+                    fileName: "z_refc.tflite",
+                    expectedByteCount: 355_025_040,
+                    sha256: "60fa7de5be394bfa1fd57781398842ff6eaf446b8b004f78d5c9ab475f76c000"
+                ),
+                .init(
+                    role: .pipelineComponent,
+                    fileName: "host_tensors.safetensors",
+                    expectedByteCount: 1_557_958_288,
+                    sha256: "2ea80e1c83a30dd9a049ee63840805685f90aed3fe68c4a72ee1d7e49400c128"
+                ),
+                .init(
+                    role: .pipelineComponent,
+                    fileName: "tokenizer.json",
+                    expectedByteCount: 11_422_654,
+                    sha256: "aeb13307a71acd8fe81861d94ad54ab689df773318809eed3cbe794b4492dae4"
+                )
+            ],
+            profile: .init(width: 256, height: 256, steps: 8, cfgScale: 1, negativePrompt: safetyNegativePrompt),
+            minimumMemory: 5_000_000_000,
+            licenseApproved: true,
+            evaluationApproved: true
+        ),
         descriptor(
             .zImageTurbo,
             reference: zImageReference,

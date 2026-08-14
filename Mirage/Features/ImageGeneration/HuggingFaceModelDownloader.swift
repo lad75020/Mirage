@@ -666,7 +666,7 @@ public actor HuggingFaceModelDownloader: ModelDownloading {
     private static func isSupportedModelPath(_ path: String) -> Bool {
         let ext = URL(fileURLWithPath: path).pathExtension.lowercased()
         return isSafeRelativePath(path)
-            && (ext == "gguf" || ext == "safetensors")
+            && ModelFileFormats.isAllowedSnapshotExtension(ext)
     }
 
     private static func isSafeRelativePath(_ path: String) -> Bool {
