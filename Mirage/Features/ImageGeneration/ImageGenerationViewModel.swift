@@ -223,7 +223,8 @@ public final class ImageGenerationViewModel {
         } catch {
             pendingDownloadReference = nil
             pendingDownloadPlan = nil
-            downloadStates[reference] = .failed(reference: reference, reason: mapDownloadError(error))
+            let reason = mapDownloadError(error)
+            downloadStates[reference] = .failed(reference: reference, reason: reason)
         }
     }
 
@@ -275,7 +276,8 @@ public final class ImageGenerationViewModel {
             advancedModelError = "Enter three public Hugging Face references in owner/model_name format."
         } catch {
             activeDownloadReference = nil
-            downloadStates[compositeReference] = .failed(reference: compositeReference, reason: mapDownloadError(error))
+            let reason = mapDownloadError(error)
+            downloadStates[compositeReference] = .failed(reference: compositeReference, reason: reason)
             advancedModelError = "The advanced model could not be prepared for download."
         }
     }
@@ -412,8 +414,10 @@ public final class ImageGenerationViewModel {
         guard let image = state.currentImage,
               saveState != .saving,
               saveState != .requestingPermission else {
+            saveTask = nil
             return
         }
+        defer { saveTask = nil }
         let authorization = await photoSaver.authorizationStatus()
         switch authorization {
         case .denied, .restricted:
@@ -425,7 +429,6 @@ public final class ImageGenerationViewModel {
         case .authorized:
             saveState = .saving
         }
-        defer { saveTask = nil }
 
         do {
             saveState = .saving
@@ -491,7 +494,8 @@ public final class ImageGenerationViewModel {
             downloadStates[reference] = .cancelled(reference: reference)
         } catch {
             if let stagingURL { await modelStore.discardStagingURL(stagingURL) }
-            downloadStates[reference] = .failed(reference: reference, reason: mapDownloadError(error))
+            let reason = mapDownloadError(error)
+            downloadStates[reference] = .failed(reference: reference, reason: reason)
         }
         downloadTask = nil
         activeDownloadReference = nil

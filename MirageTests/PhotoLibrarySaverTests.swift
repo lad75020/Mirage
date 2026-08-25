@@ -7,6 +7,7 @@ private actor StubPhotoLibraryClient: PhotoLibraryClient {
     var status: PhotoAuthorizationState
     var requestedStatus: PhotoAuthorizationState
     private(set) var assets: [Data] = []
+    private(set) var filenames: [String] = []
 
     init(status: PhotoAuthorizationState, requestedStatus: PhotoAuthorizationState = .authorized) {
         self.status = status
@@ -20,11 +21,13 @@ private actor StubPhotoLibraryClient: PhotoLibraryClient {
         return requestedStatus
     }
 
-    func createAsset(from data: Data) async throws {
+    func createPNGAsset(from data: Data, filename: String) async throws {
         assets.append(data)
+        filenames.append(filename)
     }
 
     func assetCount() -> Int { assets.count }
+    func createdFilenames() -> [String] { filenames }
 }
 
 final class PhotoLibrarySaverTests: XCTestCase {
@@ -35,9 +38,13 @@ final class PhotoLibrarySaverTests: XCTestCase {
         let firstResult = try await saver.savePNG(onePixelPNG)
         let secondResult = try await saver.savePNG(onePixelPNG)
         let assetCount = await client.assetCount()
+        let filenames = await client.createdFilenames()
         XCTAssertEqual(firstResult, .saved)
         XCTAssertEqual(secondResult, .alreadySaved)
         XCTAssertEqual(assetCount, 1)
+        XCTAssertEqual(filenames.count, 1)
+        XCTAssertTrue(filenames[0].hasPrefix("Mirage-"))
+        XCTAssertTrue(filenames[0].hasSuffix(".png"))
     }
 
     func testDeniedAuthorizationDoesNotCreateAsset() async {

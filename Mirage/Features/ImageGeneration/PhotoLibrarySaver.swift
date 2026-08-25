@@ -2,6 +2,7 @@ import CryptoKit
 import Foundation
 import ImageIO
 import Photos
+import UniformTypeIdentifiers
 
 public enum PhotoLibrarySaveError: Error, Equatable, Sendable {
     case invalidImage
@@ -13,7 +14,7 @@ public enum PhotoLibrarySaveError: Error, Equatable, Sendable {
 public protocol PhotoLibraryClient: Sendable {
     func authorizationStatus() async -> PhotoAuthorizationState
     func requestAddAuthorization() async -> PhotoAuthorizationState
-    func createAsset(from data: Data) async throws
+    func createPNGAsset(from data: Data, filename: String) async throws
 }
 
 public struct SystemPhotoLibraryClient: PhotoLibraryClient {
@@ -27,11 +28,14 @@ public struct SystemPhotoLibraryClient: PhotoLibraryClient {
         map(await PHPhotoLibrary.requestAuthorization(for: .addOnly))
     }
 
-    public func createAsset(from data: Data) async throws {
+    public func createPNGAsset(from data: Data, filename: String) async throws {
         do {
             try await PHPhotoLibrary.shared().performChanges {
                 let request = PHAssetCreationRequest.forAsset()
-                request.addResource(with: .photo, data: data, options: nil)
+                let options = PHAssetResourceCreationOptions()
+                options.contentType = .png
+                options.originalFilename = filename
+                request.addResource(with: .photo, data: data, options: options)
             }
         } catch {
             throw PhotoLibrarySaveError.writeFailed
@@ -87,7 +91,7 @@ public actor PhotoLibrarySaver: PhotoLibrarySaving {
 
         inFlightDigests.insert(digest)
         defer { inFlightDigests.remove(digest) }
-        try await client.createAsset(from: data)
+        try await client.createPNGAsset(from: data, filename: "Mirage-\(digest.prefix(12)).png")
         savedDigests.insert(digest)
         return .saved
     }

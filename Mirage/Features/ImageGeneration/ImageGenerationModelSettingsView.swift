@@ -77,7 +77,7 @@ struct ImageGenerationModelSettingsView: View {
             downloadProgress(for: reference)
             Label(downloadStateText(for: reference), systemImage: downloadStateIcon(for: reference))
                 .font(.caption)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(downloadStateForegroundStyle(for: reference))
             if submittedCustomReference != reference {
                 pendingConfirmation(for: reference)
             }
@@ -341,7 +341,7 @@ struct ImageGenerationModelSettingsView: View {
         case .validating: "Validating snapshot"
         case .downloaded: "Downloaded and validated"
         case .cancelled: "Download cancelled"
-        case .failed: "Download failed"
+        case .failed(_, let reason): reason.userMessage
         }
     }
 
@@ -352,6 +352,15 @@ struct ImageGenerationModelSettingsView: View {
         case .cancelled: "xmark.circle"
         case .resolving, .awaitingConfirmation, .downloading, .validating: "clock"
         case .notDownloaded: "externaldrive"
+        }
+    }
+
+    private func downloadStateForegroundStyle(for reference: ModelRepositoryReference) -> Color {
+        switch viewModel.downloadState(for: reference) {
+        case .failed:
+            return .red
+        default:
+            return .secondary
         }
     }
 

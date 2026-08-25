@@ -223,6 +223,22 @@ final class HuggingFaceModelDownloaderTests: XCTestCase {
         XCTAssertEqual(try Data(contentsOf: destination), Data("1234567890".utf8))
     }
 
+    func testDownloadErrorMessagesExposeActionableFailureReason() {
+        let lowStorageMessage = ModelDownloadError
+            .lowStorage(required: 11_347_980_286, available: 5_000_000_000)
+            .userMessage
+        XCTAssertTrue(lowStorageMessage.hasPrefix("Not enough storage. Required:"))
+        XCTAssertTrue(lowStorageMessage.contains("Available:"))
+        XCTAssertEqual(
+            ModelDownloadError.expectedHashUnavailable("model.gguf").userMessage,
+            "model.gguf is missing SHA-256 integrity metadata."
+        )
+        XCTAssertEqual(
+            ModelDownloadError.transportFailed.userMessage,
+            "The Hugging Face request failed. Check the network connection and try again."
+        )
+    }
+
 }
 
 private struct StubHFTransport: HFHTTPTransport {

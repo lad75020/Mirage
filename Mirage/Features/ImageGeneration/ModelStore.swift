@@ -37,8 +37,17 @@ public actor ModelStore: ModelSnapshotStoring {
             .appendingPathComponent("MirageModelStaging", isDirectory: true)
             .standardizedFileURL
         self.availableSpaceProvider = availableSpaceProvider ?? {
-            let values = try? documents.resourceValues(forKeys: [.volumeAvailableCapacityForImportantUsageKey])
-            return values?.volumeAvailableCapacityForImportantUsage ?? 0
+            let values = try? documents.resourceValues(forKeys: [
+                .volumeAvailableCapacityForImportantUsageKey,
+                .volumeAvailableCapacityKey
+            ])
+            if let importantUsageCapacity = values?.volumeAvailableCapacityForImportantUsage {
+                return importantUsageCapacity
+            }
+            if let availableCapacity = values?.volumeAvailableCapacity {
+                return Int64(availableCapacity)
+            }
+            return 0
         }
         try fileManager.createDirectory(at: modelRootURL, withIntermediateDirectories: true)
         try fileManager.createDirectory(at: stagingRootURL, withIntermediateDirectories: true)

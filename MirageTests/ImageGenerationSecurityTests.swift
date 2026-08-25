@@ -44,6 +44,18 @@ final class ImageGenerationSecurityTests: XCTestCase {
         XCTAssertFalse(project.contains("NSPhotoLibraryUsageDescription"))
     }
 
+    func testMacSandboxGrantsPhotoLibraryAccessForSaving() throws {
+        let projectRoot = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+        let data = try Data(contentsOf: projectRoot.appendingPathComponent("Mirage/MirageMac.entitlements"))
+        let entitlements = try XCTUnwrap(
+            PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any]
+        )
+
+        XCTAssertEqual(entitlements["com.apple.security.personal-information.photos-library"] as? Bool, true)
+    }
+
     func testProjectEnablesFilesWithoutATSExceptionsOrCredentials() throws {
         let projectRoot = URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent()

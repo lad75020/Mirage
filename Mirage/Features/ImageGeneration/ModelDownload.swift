@@ -125,6 +125,49 @@ public enum ModelDownloadError: Error, Equatable, Codable, Sendable {
     case fileSystemFailure
 }
 
+public extension ModelDownloadError {
+    var userMessage: String {
+        switch self {
+        case .invalidReference:
+            return "Enter a public Hugging Face model reference."
+        case .unsupportedHost:
+            return "Only public huggingface.co model downloads are supported."
+        case .redirectNotAllowed:
+            return "The download redirected to an unsupported host."
+        case .immutableRevisionMissing:
+            return "Hugging Face did not return an immutable model revision."
+        case .licenseUnavailable:
+            return "The model repository does not publish a supported license."
+        case .expectedSizeUnavailable:
+            return "The model repository is missing file size metadata."
+        case .expectedHashUnavailable(let path):
+            return "\(path) is missing SHA-256 integrity metadata."
+        case .metadataTooLarge:
+            return "The model metadata response is too large."
+        case .privateOrGatedRepository:
+            return "Private or gated repositories are not supported."
+        case .tooManyFiles:
+            return "The model snapshot contains too many files."
+        case .snapshotTooLarge:
+            return "The model snapshot is larger than Mirage supports."
+        case .lowStorage(let required, let available):
+            let requiredText = ByteCountFormatter.string(fromByteCount: required, countStyle: .file)
+            let availableText = ByteCountFormatter.string(fromByteCount: available, countStyle: .file)
+            return "Not enough storage. Required: \(requiredText). Available: \(availableText)."
+        case .cancelled:
+            return "Download cancelled."
+        case .transportFailed:
+            return "The Hugging Face request failed. Check the network connection and try again."
+        case .integrityFailed(let path):
+            return "\(path) failed integrity validation."
+        case .unsafeSnapshot(let path):
+            return "\(path) is not allowed in a model snapshot."
+        case .fileSystemFailure:
+            return "Mirage could not write the model files."
+        }
+    }
+}
+
 public struct LocalModelSnapshot: Identifiable, Equatable, Codable, Sendable {
     public let id: String
     public let reference: ModelRepositoryReference
